@@ -34,6 +34,7 @@ import com.raytheon.uf.viz.core.rsc.AbstractVizResource;
 import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
+import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.JTSGeometryData;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -41,6 +42,7 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.LineString;
 
 /**
  * Resource for SPC data
@@ -116,6 +118,14 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 	protected SPCResource(SPCResourceData resourceData,
 			LoadProperties loadProperties, PluginDataObject[] pdos) {
 		super(resourceData, loadProperties, false);
+        getCapabilities().addCapability(new OutlineCapability());
+        if (pdos != null) {
+            for (PluginDataObject p : pdos) {
+                if (p instanceof SPCRecord) {
+                    addRecord((SPCRecord) p);
+                }
+            }
+        }
 		resourceData.addChangeListener(new IResourceDataChanged() {
 			@Override
 			public void resourceChanged(ChangeType type, Object object) {
@@ -225,20 +235,31 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 		}
 		
 		for (SPCRecord record : newRecords) {
-			Polygon polygon = (Polygon) record.getGeometry();
-			
+			Geometry geometry = record.getGeometry();
+            if (geometry == null || geometry.isEmpty()) {
+                continue;
+            }
 			RGB color = getReportTypeColor(record);
 			double zoom = 12.-(descriptor.getRenderableDisplay().getZoom() * 100.);
 			if (zoom < 4) zoom = 4;
-			IShadedShape shadedShape = computeShape(target, descriptor, polygon, color);
-			IWireframeShape wireFrame = computeWireframe(target, descriptor, polygon, color);
-			target.drawWireframeShape(wireFrame, color, (float) zoom, null, 0.7f);
-			target.drawShadedShape(shadedShape, 0.3f, 1.0f);
+			IShadedShape shadedShape = computeShape(target, descriptor, geometry, color);
+            if (paintProps.getAlpha() > 0.0) {
+                target.drawShadedShape(shadedShape, paintProps.getAlpha(), 1.0f);
+            }
+            if (getCapability(OutlineCapability.class).isOutlineOn()) {
+                IWireframeShape wireFrame = computeWireframe(target, descriptor,
+                        geometry, color);
+                target.drawWireframeShape(wireFrame, color,
+                        getCapability(OutlineCapability.class).getOutlineWidth(),
+                        getCapability(OutlineCapability.class).getLineStyle());
+            }
 			
 		}
 		for (SPCRecord record : newRecords) {
-			Polygon polygon = (Polygon) record.getGeometry();
-			if (polygon.getArea() >= 1.)	target.drawStrings(paintText(record, target));
+			Geometry geometry = record.getGeometry();
+            if (geometry != null && geometry.getArea() >= 1.) {
+                target.drawStrings(paintText(record, target));
+            }
 		}
 		
 	}
@@ -252,14 +273,24 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 	 * @param color
 	 * @return
 	 */
-	private IWireframeShape computeWireframe(IGraphicsTarget target, 
-			IMapDescriptor descriptor, Polygon p, RGB color) {
-		GeneralGridGeometry genGrid = descriptor.getGridGeometry();
-		IWireframeShape wireframe = target.createWireframeShape(false, new GeneralGridGeometry(genGrid));
-		Coordinate[] coords = sampleCoordinates(p.getBoundary().getCoordinates());
-		wireframe.addLineSegment(coords);
-		return wireframe;
-	}
+	private IWireframeShape computeWireframe(IGraphicsTarget target,
+            IMapDescriptor descriptor, Geometry geometry, RGB color) {
+        GeneralGridGeometry genGrid = descriptor.getGridGeometry();
+        IWireframeShape wireframe = target.createWireframeShape(false,
+                new GeneralGridGeometry(genGrid));
+        Geometry boundary = geometry.getBoundary();
+        for (int i = 0; i < boundary.getNumGeometries(); i++) {
+            Geometry component = boundary.getGeometryN(i);
+            if (component instanceof LineString) {
+                Coordinate[] coords = sampleCoordinates(
+                        component.getCoordinates());
+                if (coords.length > 1) {
+                    wireframe.addLineSegment(coords);
+                }
+            }
+        }
+        return wireframe;
+    }
 	
 	/**
 	 * Downsample polygon coordinate list
@@ -295,8 +326,8 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 	 * @param color
 	 * @return
 	 */
-	private IShadedShape computeShape(IGraphicsTarget target, 
-			IMapDescriptor descriptor, Polygon p, RGB color) {
+	private IShadedShape computeShape(IGraphicsTarget target,
+            IMapDescriptor descriptor, Geometry geometry, RGB color) {
 		GeneralGridGeometry genGrid = descriptor.getGridGeometry();
 		IShadedShape newShadedShape = target.createShadedShape(false, new GeneralGridGeometry(genGrid));
 		JTSCompiler shapeCompiler = new JTSCompiler(newShadedShape, null, descriptor);
@@ -304,7 +335,7 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 		geomData.setWorldWrapCorrect(true);
 		try {
 			geomData.setGeometryColor(color);
-			shapeCompiler.handle(p, geomData);
+			shapeCompiler.handle(geometry, geomData);
 		} catch (VizException e) {
 			statusHandler.handle(Priority.PROBLEM, "Error computing shaded shape", e);
 		}
@@ -319,18 +350,24 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 	 * @return
 	 */
 	private RGB getReportTypeColor(SPCRecord record) {
-		RGB color = getCapability(ColorableCapability.class).getColor();
+        RGB color = parseGeoJsonColor(record.getFillColor());
+        if (color != null) {
+            return color;
+        }
+		color = getCapability(ColorableCapability.class).getColor();
 		switch(record.getReportType()) {
 			case("Convective Outlook"):
 				for (Entry<String, RGB> entry : CONVECTIVE_MAPPING.entrySet()) {
 					if (entry.getKey().equals(record.getTypeCategory())) {
 						color = entry.getValue();
 						break;}}
+                break;
 			case("Tornado Outlook"):
 				for (Entry<String, RGB> entry : TORNADO_MAPPING.entrySet()) {
 					if (entry.getKey().equals(record.getTypeCategory())) {
 						color = entry.getValue();
 						break;}}
+                break;
 			case("Wind Outlook"):
 			case("Hail Outlook"):
 				for (Entry<String, RGB> entry : WINDHAIL_MAPPING.entrySet()) {
@@ -340,6 +377,26 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 		}
 		return color;
 	}
+
+    private RGB parseGeoJsonColor(String value) {
+        if (value == null) {
+            return null;
+        }
+        String hex = value.trim();
+        if (hex.startsWith("#")) {
+            hex = hex.substring(1);
+        }
+        if (hex.matches("(?i)[0-9a-f]{6}")) {
+            try {
+                return new RGB(Integer.parseInt(hex.substring(0, 2), 16),
+                        Integer.parseInt(hex.substring(2, 4), 16),
+                        Integer.parseInt(hex.substring(4, 6), 16));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }
 	
 	/**
 	 * Add a new record to this resource
