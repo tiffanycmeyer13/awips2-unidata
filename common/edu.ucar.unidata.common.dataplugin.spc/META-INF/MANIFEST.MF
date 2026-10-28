@@ -10,4 +10,5 @@ Require-Bundle: com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.dataplugin;bundle-version="1.14.0"
 Export-Package: edu.ucar.unidata.common.dataplugin.spc
-Import-Package: jakarta.xml.bind.annotation.adapters
+Import-Package: jakarta.persistence,
+ jakarta.xml.bind.annotation.adapters
