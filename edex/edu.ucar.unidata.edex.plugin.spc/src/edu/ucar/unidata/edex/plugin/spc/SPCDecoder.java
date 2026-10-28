@@ -12,7 +12,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.geotools.api.feature.simple.SimpleFeature;
-import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -70,7 +70,7 @@ public class SPCDecoder {
     private PluginDataObject[] decodeGeoJson(String input) throws Exception {
         List<SPCRecord> records = new ArrayList<>();
 
-        SimpleFeatureCollection collection = new SimpleGeoJsonService()
+        FeatureCollection<org.geotools.api.feature.simple.SimpleFeatureType, SimpleFeature> collection = new SimpleGeoJsonService()
                 .deserializeFeatureCollection(new ByteArrayInputStream(
                         input.getBytes(StandardCharsets.UTF_8)));
 
