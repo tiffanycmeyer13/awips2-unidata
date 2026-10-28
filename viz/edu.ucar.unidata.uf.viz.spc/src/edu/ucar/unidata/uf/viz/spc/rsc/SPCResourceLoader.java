@@ -69,7 +69,7 @@ public class SPCResourceLoader extends AbstractHandler {
 
             SPCResourceData data = new SPCResourceData();
             data.setMetadataMap(metadataMap);
-            data.setBinOffset(new BinOffset(1800, 1800));
+            data.setBinOffset(new BinOffset(86400, 86400));
 
             LoadProperties loadProperties = new LoadProperties();
             ResourceProperties resourceProperties = new ResourceProperties();
