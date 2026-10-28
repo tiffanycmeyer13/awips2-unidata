@@ -1,6 +1,7 @@
 package edu.ucar.unidata.edex.plugin.spc;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
