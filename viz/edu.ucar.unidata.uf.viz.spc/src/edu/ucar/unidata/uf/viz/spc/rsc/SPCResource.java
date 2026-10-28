@@ -35,14 +35,15 @@ import com.raytheon.uf.viz.core.rsc.IResourceDataChanged;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.core.rsc.capabilities.ColorableCapability;
 import com.raytheon.uf.viz.core.rsc.capabilities.OutlineCapability;
+import com.raytheon.uf.viz.core.rsc.capabilities.DensityCapability;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler;
 import com.raytheon.viz.core.rsc.jts.JTSCompiler.JTSGeometryData;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.LineString;
+import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 
 /**
  * Resource for SPC data
@@ -119,6 +120,7 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 			LoadProperties loadProperties, PluginDataObject[] pdos) {
 		super(resourceData, loadProperties, false);
         getCapabilities().addCapability(new OutlineCapability());
+        getCapabilities().addCapability(new DensityCapability());
         if (pdos != null) {
             for (PluginDataObject p : pdos) {
                 if (p instanceof SPCRecord) {
@@ -255,12 +257,31 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             }
 			
 		}
-		for (SPCRecord record : newRecords) {
-			Geometry geometry = record.getGeometry();
-            if (geometry != null && geometry.getArea() >= 1.) {
+		List<double[]> labelPixels = new ArrayList<>();
+        double density = getCapability(DensityCapability.class).getDensity();
+        double minLabelSeparation = 32.0 / Math.max(0.1, density);
+        for (SPCRecord record : newRecords) {
+            Geometry geometry = record.getGeometry();
+            if (geometry == null || geometry.getArea() < 1.0) {
+                continue;
+            }
+            Point center = geometry.getEnvelope().getCentroid();
+            double[] pixel = descriptor.worldToPixel(new double[] {
+                    center.getX(), center.getY() });
+            boolean sampled = true;
+            for (double[] placed : labelPixels) {
+                double dx = pixel[0] - placed[0];
+                double dy = pixel[1] - placed[1];
+                if (dx * dx + dy * dy < minLabelSeparation * minLabelSeparation) {
+                    sampled = false;
+                    break;
+                }
+            }
+            if (sampled) {
+                labelPixels.add(pixel);
                 target.drawStrings(paintText(record, target));
             }
-		}
+        }
 		
 	}
 
@@ -423,8 +444,11 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 
 	@Override
 	public String getName() {
-		return "SPC " + this.resourceData.getMetadataMap()
-		.get("reportType").getConstraintValue().toString().trim();
+		RequestConstraint constraint = this.resourceData.getMetadataMap()
+                .get("reportType");
+        String product = constraint == null ? "Convective Outlook"
+                : constraint.getConstraintValue().toString().trim();
+        return "SPC " + product;
 	}
 
 	@Override
