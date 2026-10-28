@@ -19,13 +19,5 @@
 	</extension>
 	
 
-    <extension point="org.eclipse.ui.menus">
-        <menuContribution
-                locationURI="menu:ncepHydro?after=SPC">
-            <command
-                    commandId="edu.ucar.unidata.uf.viz.spc.loadSPCResource"
-                    label="Load SPC Outlook..."
-                    style="push" />
-        </menuContribution>
-    </extension>
+
 </plugin>
