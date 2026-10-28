@@ -90,6 +90,7 @@ public class SPCRecord extends PluginDataObject {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column
+    @DataURI(position = 4)
     @DynamicSerializeElement
     private Date validTime;
 
