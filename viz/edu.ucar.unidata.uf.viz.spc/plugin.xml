@@ -14,22 +14,18 @@
 	      point="org.eclipse.ui.handlers">
 	      <handler
              commandId="edu.ucar.unidata.uf.viz.spc.loadSPCResource"
-             class="edu.ucar.unidata.uf.viz.spc.rsc.handler.SPCResourceLoader">
+             class="edu.ucar.unidata.uf.viz.spc.rsc.SPCResourceLoader">
 	      </handler>
 	</extension>
 	
 
     <extension point="org.eclipse.ui.menus">
         <menuContribution
-                locationURI="menu:org.eclipse.ui.main.menu?after=additions">
-            <menu
-                    id="edu.ucar.unidata.uf.viz.spc.menu"
-                    label="SPC Outlooks">
-                <command
-                        commandId="edu.ucar.unidata.uf.viz.spc.loadSPCResource"
-                        label="Load SPC Outlook..."
-                        style="push" />
-            </menu>
+                locationURI="menu:ncepHydro?after=SPC">
+            <command
+                    commandId="edu.ucar.unidata.uf.viz.spc.loadSPCResource"
+                    label="Load SPC Outlook..."
+                    style="push" />
         </menuContribution>
     </extension>
 </plugin>
