@@ -12,6 +12,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.locationtech.jts.geom.Geometry;
@@ -32,7 +33,6 @@ import de.micromata.opengis.kml.v_2_2_0.Folder;
 import de.micromata.opengis.kml.v_2_2_0.Kml;
 import de.micromata.opengis.kml.v_2_2_0.LinearRing;
 import de.micromata.opengis.kml.v_2_2_0.Placemark;
-import de.micromata.opengis.kml.v_2_2_0.Polygon;
 import de.micromata.opengis.kml.v_2_2_0.TimeSpan;
 import edu.ucar.unidata.common.dataplugin.spc.SPCRecord;
 
@@ -70,7 +70,7 @@ public class SPCDecoder {
     private PluginDataObject[] decodeGeoJson(String input) throws Exception {
         List<SPCRecord> records = new ArrayList<>();
 
-        FeatureCollection<org.geotools.api.feature.simple.SimpleFeatureType, SimpleFeature> collection = new SimpleGeoJsonService()
+        FeatureCollection<SimpleFeatureType, SimpleFeature> collection = new SimpleGeoJsonService()
                 .deserializeFeatureCollection(new ByteArrayInputStream(
                         input.getBytes(StandardCharsets.UTF_8)));
 
