@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <requestPatterns xmlns:ns2="group">
-    <regex>(^day.otlk.*kml$)|(^day1otlk.*_(cat|torn|hail|wind)\\.lyr\\.geojson$)</regex>
+    <regex>(^day.otlk.*kml$)|(^day1otlk.*_(cat|torn|hail|wind)[.]lyr[.]geojson$)</regex>
 </requestPatterns>
