@@ -7,6 +7,7 @@ Bundle-Vendor: Unidata
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: com.raytheon.uf.viz.core;bundle-version="1.14.6",
  org.eclipse.ui;bundle-version="3.8.2",
+ org.eclipse.jface,
  com.raytheon.uf.common.geospatial;bundle-version="1.14.2",
  com.raytheon.uf.common.colormap;bundle-version="1.14.0",
  com.raytheon.uf.viz.core.rsc;bundle-version="1.14.1",
