@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -60,11 +62,83 @@ public class SPCDecoder {
             return new PluginDataObject[0];
         }
 
+        if (data.length > 3 && data[0] == 'P' && data[1] == 'K') {
+            return decodeZip(data);
+        }
+
         String input = new String(data, StandardCharsets.UTF_8).trim();
         if (input.startsWith("{")) {
             return decodeGeoJson(input);
         }
         return decodeKml(input);
+    }
+
+    private PluginDataObject[] decodeZip(byte[] data) throws Exception {
+        List<byte[]> timestampedFiles = new ArrayList<>();
+        List<byte[]> currentFiles = new ArrayList<>();
+        byte[] buffer = new byte[8192];
+
+        try (ZipInputStream zip = new ZipInputStream(
+                new ByteArrayInputStream(data))) {
+            ZipEntry entry;
+            while ((entry = zip.getNextEntry()) != null) {
+                if (entry.isDirectory() || !isDay1LyrFile(entry.getName())) {
+                    continue;
+                }
+
+                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                int count;
+                while ((count = zip.read(buffer)) != -1) {
+                    output.write(buffer, 0, count);
+                }
+
+                byte[] content = output.toByteArray();
+                String fileName = entry.getName();
+                int slash = fileName.lastIndexOf('/');
+                String baseName = slash < 0 ? fileName
+                        : fileName.substring(slash + 1);
+                String stem = baseName.substring(0,
+                        baseName.length() - ".lyr.geojson".length());
+                if (stem.matches(
+                        "day1otlk_[0-9]{8}_[0-9]{4}_(cat|torn|hail|wind)")) {
+                    timestampedFiles.add(content);
+                } else {
+                    currentFiles.add(content);
+                }
+            }
+        }
+
+        // The SPC archive contains timestamped files and current-name aliases
+        // for the same cycle. Prefer the timestamped set to avoid ingesting
+        // duplicate records from both copies.
+        List<byte[]> selectedFiles = timestampedFiles.isEmpty()
+                ? currentFiles : timestampedFiles;
+        List<PluginDataObject> records = new ArrayList<>();
+        for (byte[] file : selectedFiles) {
+            PluginDataObject[] decoded = decodeGeoJson(
+                    new String(file, StandardCharsets.UTF_8).trim());
+            for (PluginDataObject record : decoded) {
+                records.add(record);
+            }
+        }
+
+        logger.info(records.size() + " SPC outlook features decoded from ZIP");
+        return records.toArray(new PluginDataObject[records.size()]);
+    }
+
+    private boolean isDay1LyrFile(String entryName) {
+        int slash = entryName.lastIndexOf('/');
+        String baseName = slash < 0 ? entryName
+                : entryName.substring(slash + 1);
+        if (!baseName.endsWith(".lyr.geojson")) {
+            return false;
+        }
+
+        String stem = baseName.substring(0,
+                baseName.length() - ".lyr.geojson".length());
+        return stem.matches(
+                "day1otlk_[0-9]{8}_[0-9]{4}_(cat|torn|hail|wind)")
+                || stem.matches("day1otlk_(cat|torn|hail|wind)");
     }
 
     private PluginDataObject[] decodeGeoJson(String input) throws Exception {
