@@ -3,14 +3,14 @@ package edu.ucar.unidata.common.dataplugin.spc;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
@@ -116,6 +116,39 @@ public class SPCRecord extends PluginDataObject {
     @DataURI(position = 3)
     Integer reportPart;
 
+	@Column(length = 32)
+	@DynamicSerializeElement
+	@DataURI(position = 4)
+	private String issueTime;
+
+	@Column(length = 32)
+	@DynamicSerializeElement
+	private String validTime;
+
+	@Column(length = 32)
+	@DynamicSerializeElement
+	private String expireTime;
+
+	@Column(length = 128)
+	@DynamicSerializeElement
+	private String displayLabel;
+
+	@Column(length = 64)
+	@DynamicSerializeElement
+	private String forecaster;
+
+	@Column
+	@DynamicSerializeElement
+	private Integer riskRank;
+
+	@Column(length = 16)
+	@DynamicSerializeElement
+	private String fillColor;
+
+	@Column(length = 16)
+	@DynamicSerializeElement
+	private String strokeColor;
+
 	@Column(name = "location", columnDefinition = "geometry")
 	@XmlJavaTypeAdapter(value = GeometryAdapter.class)
 	@DynamicSerializeElement
@@ -144,6 +177,70 @@ public class SPCRecord extends PluginDataObject {
 	
 	public Integer getReportPart() {
 		return reportPart;
+	}
+
+	public String getIssueTime() {
+		return issueTime;
+	}
+
+	public void setIssueTime(String issueTime) {
+		this.issueTime = issueTime;
+	}
+
+	public String getValidTime() {
+		return validTime;
+	}
+
+	public void setValidTime(String validTime) {
+		this.validTime = validTime;
+	}
+
+	public String getExpireTime() {
+		return expireTime;
+	}
+
+	public void setExpireTime(String expireTime) {
+		this.expireTime = expireTime;
+	}
+
+	public String getDisplayLabel() {
+		return displayLabel;
+	}
+
+	public void setDisplayLabel(String displayLabel) {
+		this.displayLabel = displayLabel;
+	}
+
+	public String getForecaster() {
+		return forecaster;
+	}
+
+	public void setForecaster(String forecaster) {
+		this.forecaster = forecaster;
+	}
+
+	public Integer getRiskRank() {
+		return riskRank;
+	}
+
+	public void setRiskRank(Integer riskRank) {
+		this.riskRank = riskRank;
+	}
+
+	public String getFillColor() {
+		return fillColor;
+	}
+
+	public void setFillColor(String fillColor) {
+		this.fillColor = fillColor;
+	}
+
+	public String getStrokeColor() {
+		return strokeColor;
+	}
+
+	public void setStrokeColor(String strokeColor) {
+		this.strokeColor = strokeColor;
 	}
 
 	public String getTypeCategory() {

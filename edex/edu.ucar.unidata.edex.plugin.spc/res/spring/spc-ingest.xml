@@ -18,6 +18,11 @@
 		xmlns="http://camel.apache.org/schema/spring"
 		errorHandlerRef="errorHandler">
 
+		<!-- Use unique template bean IDs to avoid collisions with other EDEX Camel contexts. -->
+		<template id="spcProducerTemplate" />
+		<fluentTemplate id="spcFluentTemplate" />
+		<consumerTemplate id="spcConsumerTemplate" />
+
 		<route id="spcIngestRoute">
 			<from uri="jms-durable:queue:Ingest.Spc" />
 			<setHeader name="pluginName">
