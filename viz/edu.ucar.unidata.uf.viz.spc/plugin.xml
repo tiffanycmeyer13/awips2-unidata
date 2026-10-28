@@ -18,4 +18,18 @@
 	      </handler>
 	</extension>
 	
+
+    <extension point="org.eclipse.ui.menus">
+        <menuContribution
+                locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+            <menu
+                    id="edu.ucar.unidata.uf.viz.spc.menu"
+                    label="SPC Outlooks">
+                <command
+                        commandId="edu.ucar.unidata.uf.viz.spc.loadSPCResource"
+                        label="Load SPC Outlook..."
+                        style="push" />
+            </menu>
+        </menuContribution>
+    </extension>
 </plugin>
