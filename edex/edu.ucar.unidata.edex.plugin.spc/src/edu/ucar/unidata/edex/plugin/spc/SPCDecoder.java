@@ -106,7 +106,7 @@ public class SPCDecoder {
                 SPCRecord record = new SPCRecord();
                 record.setDataTime(new DataTime(referenceTime));
                 record.setReportType(reportType);
-                record.setTypeCategory(label == null ? displayLabel : label);
+                record.setTypeCategory(displayCategory(label, displayLabel));
                 record.setDisplayLabel(displayLabel);
                 record.setIssueTime(issueTime);
                 record.setValidTime(validTime);
@@ -159,6 +159,43 @@ public class SPCDecoder {
             return true;
         default:
             return false;
+        }
+    }
+
+    /**
+     * Translate SPC's compact GeoJSON labels to the categories used by the
+     * existing CAVE resource color map.
+     */
+    private static String displayCategory(String label, String displayLabel) {
+        if (label == null) {
+            return displayLabel;
+        }
+        switch (label.toUpperCase(Locale.US)) {
+        case "TSTM":
+            return "General Thunder";
+        case "MRGL":
+            return "Marginal Risk";
+        case "SLGT":
+            return "Slight Risk";
+        case "ENH":
+            return "Enhanced Risk";
+        case "MDT":
+            return "Moderate Risk";
+        case "HIGH":
+            return "High Risk";
+        case "SIG":
+            return "Sig";
+        default:
+            try {
+                double probability = Double.parseDouble(label);
+                if (probability >= 0.0 && probability <= 1.0) {
+                    return String.format(Locale.US, "%d %%",
+                            Math.round(probability * 100.0));
+                }
+            } catch (NumberFormatException e) {
+                // Non-probability labels are retained as supplied.
+            }
+            return label;
         }
     }
 
