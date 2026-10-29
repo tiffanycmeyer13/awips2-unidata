@@ -304,6 +304,7 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         }
         paintRiskLegend(target, paintProps, drawOrder, imaging);
         paintProductMetadata(target, paintProps, drawOrder);
+        paintNoRiskNotice(target, paintProps, drawOrder);
 	}
 
     /**
@@ -367,6 +368,48 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         legendProps.setAlpha(1.0f);
         target.getExtension(ICanvasRenderingExtension.class).drawStrings(
                 legendProps, strings.toArray(new DrawableString[0]));
+    }
+
+    /**
+     * Prominently show the probability threshold when an outlook has no risk
+     * areas. The text is screen-relative so it remains centered as the map is
+     * resized or panned.
+     */
+    private void paintNoRiskNotice(IGraphicsTarget target,
+            PaintProperties paintProps, List<SPCRecord> displayRecords)
+            throws VizException {
+        String label = null;
+        for (SPCRecord record : displayRecords) {
+            if ("No Risk".equals(record.getTypeCategory())
+                    && record.getDisplayLabel() != null
+                    && !record.getDisplayLabel().trim().isEmpty()) {
+                label = record.getDisplayLabel().trim();
+                break;
+            }
+        }
+        if (label == null) {
+            return;
+        }
+
+        if (label.regionMatches(true, 0, "less than ", 0, 10)) {
+            label = "Less than " + label.substring(10);
+        }
+
+        java.awt.Rectangle bounds = paintProps.getCanvasBounds();
+        double estimatedTextWidth = label.length() * 9.0;
+        double x = bounds.x + Math.max(0.0,
+                (bounds.width - estimatedTextWidth) / 2.0);
+        double y = bounds.y + bounds.height / 2.0;
+
+        DrawableString notice = new DrawableString(label,
+                new RGB(255, 255, 0));
+        notice.setCoordinates(x, y);
+        notice.verticallAlignment = VerticalAlignment.TOP;
+        notice.addTextStyle(TextStyle.BLANKED, new RGB(0, 0, 0));
+        PaintProperties noticeProps = new PaintProperties(paintProps);
+        noticeProps.setAlpha(1.0f);
+        target.getExtension(ICanvasRenderingExtension.class).drawStrings(
+                noticeProps, new DrawableString[] { notice });
     }
 
     /**
