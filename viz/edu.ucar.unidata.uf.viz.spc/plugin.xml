@@ -30,6 +30,14 @@
     </extension>
 
     <extension
+          point="com.raytheon.uf.viz.productbrowser.dataDefinition">
+        <dataDefinition
+             name="spcProductBrowserDataDefinition"
+             class="edu.ucar.unidata.uf.viz.spc.rsc.SPCProductBrowserDataDefinition">
+        </dataDefinition>
+    </extension>
+
+    <extension
           point="com.raytheon.viz.ui.contextualMenu">
         <contextualMenu
               actionClass="edu.ucar.unidata.uf.viz.spc.rsc.SPCFillToggleAction"
