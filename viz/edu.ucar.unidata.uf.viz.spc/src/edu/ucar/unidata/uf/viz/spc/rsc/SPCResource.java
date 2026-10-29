@@ -62,6 +62,9 @@ import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 
 public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescriptor> {
 
+    /** Fixed transparency for risk fills, independent of brightness controls. */
+    private static final float SPC_FILL_ALPHA = 0.5f;
+
 	private static final transient IUFStatusHandler statusHandler = UFStatus
 			.getHandler(SPCResource.class);
 
@@ -236,19 +239,16 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             if (geometry == null || geometry.isEmpty()) {
                 continue;
             }
-            // Apply brightness to the vector fill color and use the
-            // standard alpha-only shaded-shape draw path so Imaging
-            // Properties opacity is honored for these polygons.
+            // Keep the risk fills translucent so the map remains visible
+            // beneath them. Brightness remains controlled independently by
+            // the standard Imaging Properties brightness control.
             RGB fillColor = applyBrightness(
                     applyContrast(getReportTypeColor(record),
                             imaging.getContrast()),
                     imaging.getBrightness());
             IShadedShape shadedShape = computeShape(target, descriptor,
                     geometry, fillColor);
-            float alpha = imaging.getAlpha();
-            if (alpha > 0.0f) {
-                target.drawShadedShape(shadedShape, alpha);
-            }
+            target.drawShadedShape(shadedShape, SPC_FILL_ALPHA);
         }
 
         // Draw outlines in a second pass so later higher-risk fills cannot
