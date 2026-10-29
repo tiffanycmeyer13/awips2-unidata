@@ -236,14 +236,18 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             if (geometry == null || geometry.isEmpty()) {
                 continue;
             }
-            RGB fillColor = applyContrast(getReportTypeColor(record),
-                    imaging.getContrast());
+            // Apply brightness to the vector fill color and use the
+            // standard alpha-only shaded-shape draw path so Imaging
+            // Properties opacity is honored for these polygons.
+            RGB fillColor = applyBrightness(
+                    applyContrast(getReportTypeColor(record),
+                            imaging.getContrast()),
+                    imaging.getBrightness());
             IShadedShape shadedShape = computeShape(target, descriptor,
                     geometry, fillColor);
             float alpha = imaging.getAlpha();
             if (alpha > 0.0f) {
-                target.drawShadedShape(shadedShape, alpha,
-                        imaging.getBrightness());
+                target.drawShadedShape(shadedShape, alpha);
             }
         }
 
@@ -287,7 +291,12 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         }
 
         List<DrawableString> strings = new ArrayList<>();
-        double x = 12.0;
+        // Reserve enough room for the longest risk label and swatch.
+        // Place the legend relative to the canvas so it stays in the upper
+        // right corner as users resize the display.
+        double legendWidth = 232.0;
+        double x = Math.max(12.0,
+                paintProps.getCanvasBounds().getMaxX() - legendWidth - 12.0);
         double y = 18.0;
         DrawableString title = new DrawableString("SPC Risk Levels",
                 new RGB(255, 255, 255));
