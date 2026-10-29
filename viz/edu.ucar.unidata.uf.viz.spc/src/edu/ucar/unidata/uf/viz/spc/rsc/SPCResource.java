@@ -79,31 +79,52 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 	private Map<String, RGB> CONVECTIVE_MAPPING = 
 			getColorMapping(convectiveFillColor,SPCRecord.CONVECTIVE_OUTLOOK);
 	
-	private Map<String, RGB> TORNADO_MAPPING = 
-			getColorMapping(tornadoFillColor,SPCRecord.TORNADO_OUTLOOK);
-	
-	private Map<String, RGB> WINDHAIL_MAPPING = 
-			getColorMapping(windHailFillColor,SPCRecord.HAILWIND_OUTLOOK);
+	private Map<String, RGB> TORNADO_MAPPING =
+			getColorMapping(tornadoFillColor, SPCRecord.TORNADO_OUTLOOK);
 
-	private static final RGB[] tornadoFillColor = { 
-			new RGB(0, 139, 0), 
-			new RGB(139, 71, 38), 
-			new RGB(255, 200, 0), 
-			new RGB(255, 0, 0), 
-			new RGB(255, 0, 255), 
-			new RGB(145, 44, 238), 
-			new RGB(16, 78, 139), 
-			new RGB(0, 0, 0)
-	};
-	
-	private static final RGB[] windHailFillColor = { 
-			new RGB(139, 71, 38), 
-			new RGB(255, 200, 0), 
-			new RGB(255, 0, 0), 
-			new RGB(255, 0, 255), 
-			new RGB(145, 44, 238), 
-			new RGB(0, 0, 0)
-	};
+    private static final String[] WIND_PROBABILITY_CATEGORIES = {
+            "5 %", "15 %", "30 %", "45 %", "60 %", "75 %", "90 %", "Sig" };
+
+    private static final String[] HAIL_PROBABILITY_CATEGORIES = {
+            "5 %", "15 %", "30 %", "45 %", "60 %", "Sig" };
+
+    private Map<String, RGB> WIND_MAPPING =
+            getColorMapping(windFillColor, WIND_PROBABILITY_CATEGORIES);
+
+    private Map<String, RGB> HAIL_MAPPING =
+            getColorMapping(hailFillColor, HAIL_PROBABILITY_CATEGORIES);
+
+    // SPC GeoJSON/MapServer fill colors for the probabilistic outlook classes.
+    private static final RGB[] tornadoFillColor = {
+            new RGB(121, 186, 122), // 2%
+            new RGB(189, 153, 138), // 5%
+            new RGB(255, 228, 129), // 10%
+            new RGB(255, 128, 128), // 15%
+            new RGB(255, 128, 255), // 30%
+            new RGB(200, 150, 247), // 45%
+            new RGB(16, 78, 139), // 60%
+            new RGB(0, 0, 0) // Significant
+    };
+
+    private static final RGB[] windFillColor = {
+            new RGB(197, 163, 146), // 5%
+            new RGB(255, 235, 127), // 15%
+            new RGB(255, 127, 127), // 30%
+            new RGB(255, 127, 255), // 45%
+            new RGB(200, 149, 246), // 60%
+            new RGB(92, 133, 214), // 75%
+            new RGB(26, 255, 255), // 90%
+            new RGB(0, 0, 0) // Significant
+    };
+
+    private static final RGB[] hailFillColor = {
+            new RGB(197, 163, 146), // 5%
+            new RGB(255, 235, 127), // 15%
+            new RGB(255, 127, 127), // 30%
+            new RGB(255, 127, 255), // 45%
+            new RGB(200, 149, 246), // 60%
+            new RGB(0, 0, 0) // Significant
+    };
 
 	private static final RGB[] convectiveFillColor = { 
 			new RGB(192, 232, 192), 
@@ -516,8 +537,13 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 						break;}}
                 break;
 			case("Wind Outlook"):
+				for (Entry<String, RGB> entry : WIND_MAPPING.entrySet()) {
+					if (entry.getKey().equals(record.getTypeCategory())) {
+						color = entry.getValue();
+						break;}}
+                break;
 			case("Hail Outlook"):
-				for (Entry<String, RGB> entry : WINDHAIL_MAPPING.entrySet()) {
+				for (Entry<String, RGB> entry : HAIL_MAPPING.entrySet()) {
 					if (entry.getKey().equals(record.getTypeCategory())) {
 						color = entry.getValue();
 						break;}}
