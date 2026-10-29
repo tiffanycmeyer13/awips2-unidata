@@ -296,7 +296,9 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         // right corner as users resize the display.
         double legendWidth = 232.0;
         double x = Math.max(12.0,
-                paintProps.getCanvasBounds().getMaxX() - legendWidth - 12.0);
+                paintProps.getCanvasBounds().x
+                        + paintProps.getCanvasBounds().width - legendWidth
+                        - 12.0);
         double y = 18.0;
         DrawableString title = new DrawableString("SPC Risk Levels",
                 new RGB(255, 255, 255));
