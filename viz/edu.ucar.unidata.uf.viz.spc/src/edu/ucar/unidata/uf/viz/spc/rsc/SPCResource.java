@@ -63,7 +63,7 @@ import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescriptor> {
 
     /** Fixed transparency for risk fills, independent of brightness controls. */
-    private static final float SPC_FILL_ALPHA = 0.5f;
+    private static final float SPC_FILL_ALPHA = 1.0f;
 
 	private static final transient IUFStatusHandler statusHandler = UFStatus
 			.getHandler(SPCResource.class);
