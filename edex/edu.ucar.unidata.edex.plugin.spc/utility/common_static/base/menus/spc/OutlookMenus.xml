@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <contribute xsi:type="bundleItem"
+    <contribute xsi:type="bundleItem" useReferenceTime="true"
         file="bundles/spc/SPCOutlook.xml"
         menuText="Convective Outlook (Overview)"
-        id="spcConvectiveOutlook">
+        timeQuery="true" id="spcConvectiveOutlook">
         <substitute key="reportType" value="Convective Outlook" />
     </contribute>
-    <contribute xsi:type="bundleItem"
+    <contribute xsi:type="bundleItem" useReferenceTime="true"
         file="bundles/spc/SPCOutlook.xml"
         menuText="Tornado Outlook"
-        id="spcTornadoOutlook">
+        timeQuery="true" id="spcTornadoOutlook">
         <substitute key="reportType" value="Tornado Outlook" />
     </contribute>
-    <contribute xsi:type="bundleItem"
+    <contribute xsi:type="bundleItem" useReferenceTime="true"
         file="bundles/spc/SPCOutlook.xml"
         menuText="Hail Outlook"
-        id="spcHailOutlook">
+        timeQuery="true" id="spcHailOutlook">
         <substitute key="reportType" value="Hail Outlook" />
     </contribute>
-    <contribute xsi:type="bundleItem"
+    <contribute xsi:type="bundleItem" useReferenceTime="true"
         file="bundles/spc/SPCOutlook.xml"
         menuText="Wind Outlook"
-        id="spcWindOutlook">
+        timeQuery="true" id="spcWindOutlook">
         <substitute key="reportType" value="Wind Outlook" />
     </contribute>
 </menuTemplate>
