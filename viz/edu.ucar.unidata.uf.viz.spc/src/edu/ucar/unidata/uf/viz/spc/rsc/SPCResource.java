@@ -200,6 +200,9 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         for (SPCRecord record : records) {
             try {
                 Geometry geom = record.getGeometry();
+                if (geom == null || geom.isEmpty()) {
+                    continue;
+                }
                 Coordinate latLon = coord.asLatLon();
                 Point point = geom.getFactory().createPoint(latLon);
                 if (geom.contains(point)) {
@@ -313,8 +316,10 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             ImagingCapability imaging) throws VizException {
         Map<String, SPCRecord> categories = new LinkedHashMap<>();
         for (SPCRecord record : displayRecords) {
+            Geometry geometry = record.getGeometry();
             String label = record.getTypeCategory();
-            if (label != null && !label.trim().isEmpty()) {
+            if (geometry != null && !geometry.isEmpty() && label != null
+                    && !label.trim().isEmpty()) {
                 categories.putIfAbsent(label, record);
             }
         }
@@ -395,6 +400,13 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         if (record.getForecaster() != null
                 && !record.getForecaster().trim().isEmpty()) {
             lines.add("FCSTR: " + record.getForecaster());
+        }
+        for (SPCRecord outlookRecord : displayRecords) {
+            if ("No Risk".equals(outlookRecord.getTypeCategory())
+                    && outlookRecord.getDisplayLabel() != null) {
+                lines.add("NO AREAS: " + outlookRecord.getDisplayLabel());
+                break;
+            }
         }
         lines.add("NOAA/NWS/NCEP");
         lines.add("STORM PREDICTION CENTER");

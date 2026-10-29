@@ -147,7 +147,7 @@ public class SPCDecoder {
         for (ZipGeoJsonFile file : selectedFiles) {
             PluginDataObject[] decoded = decodeGeoJson(
                     new String(file.content, StandardCharsets.UTF_8).trim(),
-                    file.day);
+                    file.day, getReportTypeForLayer(file.key));
             for (PluginDataObject record : decoded) {
                 records.add(record);
             }
@@ -179,11 +179,16 @@ public class SPCDecoder {
     }
 
     private PluginDataObject[] decodeGeoJson(String input) throws Exception {
-        return decodeGeoJson(input, "1");
+        return decodeGeoJson(input, "1", null);
     }
 
     private PluginDataObject[] decodeGeoJson(String input, String outlookDay)
             throws Exception {
+        return decodeGeoJson(input, outlookDay, null);
+    }
+
+    private PluginDataObject[] decodeGeoJson(String input, String outlookDay,
+            String layerReportType) throws Exception {
         List<SPCRecord> records = new ArrayList<>();
 
         FeatureCollection<SimpleFeatureType, SimpleFeature> collection = new SimpleGeoJsonService()
@@ -204,22 +209,29 @@ public class SPCDecoder {
                     continue;
                 }
 
+                boolean noRisk = isNoRiskLabel(label);
                 String type = getReportType(label, displayLabel);
+                if (type == null && noRisk) {
+                    type = layerReportType;
+                }
                 if (type == null) {
                     logger.info("Skipping SPC feature with unsupported label: "
                             + label + " (" + displayLabel + ")");
                     continue;
                 }
 
-                Object geometryValue = feature.getDefaultGeometry();
-                if (!(geometryValue instanceof Geometry)) {
-                    continue;
-                }
-                Geometry geometry = (Geometry) geometryValue;
-                if (geometry.isEmpty()
-                        || (!(geometry instanceof Polygon)
-                                && !(geometry instanceof MultiPolygon))) {
-                    continue;
+                Geometry geometry = null;
+                if (!noRisk) {
+                    Object geometryValue = feature.getDefaultGeometry();
+                    if (!(geometryValue instanceof Geometry)) {
+                        continue;
+                    }
+                    geometry = (Geometry) geometryValue;
+                    if (geometry.isEmpty()
+                            || (!(geometry instanceof Polygon)
+                                    && !(geometry instanceof MultiPolygon))) {
+                        continue;
+                    }
                 }
 
                 Date issueTime = parseTime(
@@ -251,8 +263,9 @@ public class SPCDecoder {
                 record.setExpireTime(expireTime);
                 record.setReportType(type);
                 record.setOutlookDay(outlookDay);
-                record.setTypeCategory(normalizeCategory(label));
-                record.setDisplayLabel(displayLabel);
+                record.setTypeCategory(
+                        noRisk ? "No Risk" : normalizeCategory(label));
+                record.setDisplayLabel(noRisk ? label : displayLabel);
                 record.setForecaster(getProperty(feature, "FORECASTER"));
                 record.setRiskLevel(parseInteger(feature.getAttribute("DN")));
                 record.setFillColor(getProperty(feature, "fill"));
@@ -265,6 +278,26 @@ public class SPCDecoder {
 
         logger.info(records.size() + " SPC outlook features decoded from GeoJSON");
         return records.toArray(new PluginDataObject[records.size()]);
+    }
+
+    private String getReportTypeForLayer(String key) {
+        int separator = key.lastIndexOf('_');
+        String suffix = separator < 0 ? key : key.substring(separator + 1);
+        for (int i = 0; i < REPORT_SUFFIXES.length; i++) {
+            if (REPORT_SUFFIXES[i].equals(suffix)) {
+                return REPORT_NAMES[i];
+            }
+        }
+        return null;
+    }
+
+    private boolean isNoRiskLabel(String label) {
+        if (label == null) {
+            return false;
+        }
+        String normalized = label.trim().toLowerCase(Locale.US);
+        return normalized.startsWith("less than ")
+                && normalized.endsWith(" all areas");
     }
 
     private String getReportType(String label, String displayLabel) {
