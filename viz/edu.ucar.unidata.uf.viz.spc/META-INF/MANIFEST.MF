@@ -4,7 +4,7 @@ Bundle-Name: SPC Viz
 Bundle-SymbolicName: edu.ucar.unidata.uf.viz.spc;singleton:=true
 Bundle-Version: 1.15.0.qualifier
 Bundle-Vendor: Unidata
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.uf.viz.core;bundle-version="1.14.6",
  org.eclipse.ui;bundle-version="3.8.2",
  org.eclipse.jface,
@@ -19,7 +19,7 @@ Require-Bundle: com.raytheon.uf.viz.core;bundle-version="1.14.6",
  edu.ucar.unidata.common.dataplugin.spc;bundle-version="1.0.0",
  com.raytheon.viz.core,
  de.micromata.opengis.kml,
- javax.xml.bind;bundle-version="2.4.0"
+ jakarta.xml.bind
 Export-Package: edu.ucar.unidata.uf.viz.spc,
  edu.ucar.unidata.uf.viz.spc.rsc
 Import-Package: com.raytheon.uf.viz.core.rsc.interrogation
