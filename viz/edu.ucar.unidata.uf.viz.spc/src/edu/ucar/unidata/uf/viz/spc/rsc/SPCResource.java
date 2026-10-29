@@ -395,7 +395,7 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             label = "Less than " + label.substring(10);
         }
 
-        java.awt.Rectangle bounds = paintProps.getCanvasBounds();
+        org.eclipse.swt.graphics.Rectangle bounds = paintProps.getCanvasBounds();
         double estimatedTextWidth = label.length() * 9.0;
         double x = bounds.x + Math.max(0.0,
                 (bounds.width - estimatedTextWidth) / 2.0);
