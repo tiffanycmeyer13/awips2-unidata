@@ -78,6 +78,11 @@ public class SPCRecord extends PluginDataObject {
     @DataURI(position = 3)
     private Integer reportPart;
 
+    @Column(length = 8)
+    @DynamicSerializeElement
+    @DataURI(position = 5)
+    private String outlookDay;
+
     @Column(name = "location", columnDefinition = "geometry")
     @XmlJavaTypeAdapter(value = GeometryAdapter.class)
     @DynamicSerializeElement
@@ -121,6 +126,14 @@ public class SPCRecord extends PluginDataObject {
 
     public SPCRecord() {
         this.reportType = PLUGIN_NAME;
+    }
+
+    public String getOutlookDay() {
+        return outlookDay;
+    }
+
+    public void setOutlookDay(String outlookDay) {
+        this.outlookDay = outlookDay;
     }
 
     public Geometry getGeometry() {

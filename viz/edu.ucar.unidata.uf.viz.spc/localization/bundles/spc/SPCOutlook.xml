@@ -21,6 +21,10 @@
                                 <constraint constraintValue="${reportType}"
                                     constraintType="EQUALS" />
                             </mapping>
+                            <mapping key="outlookDay">
+                                <constraint constraintValue="${outlookDay}"
+                                    constraintType="EQUALS" />
+                            </mapping>
                         </metadataMap>
                     </resourceData>
                 </resource>

@@ -16,7 +16,7 @@ public class SPCProductBrowserDataDefinition
     public SPCProductBrowserDataDefinition() {
         productName = "spc";
         displayName = "SPC Outlooks";
-        order = new String[] { "reportType" };
+        order = new String[] { "outlookDay", "reportType" };
         order = getOrder();
 
         loadProperties = new LoadProperties();
@@ -27,7 +27,11 @@ public class SPCProductBrowserDataDefinition
     public List<ProductBrowserLabel> formatData(String param,
             String[] parameters) {
         List<ProductBrowserLabel> labels = new ArrayList<>();
-        if ("reportType".equals(param)) {
+        if ("outlookDay".equals(param)) {
+            for (String day : parameters) {
+                labels.add(new ProductBrowserLabel("Day " + day, day));
+            }
+        } else if ("reportType".equals(param)) {
             for (String reportType : parameters) {
                 labels.add(new ProductBrowserLabel(reportType, reportType));
             }

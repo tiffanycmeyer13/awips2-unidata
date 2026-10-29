@@ -5,9 +5,13 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -59,6 +63,24 @@ public class SPCDecoder {
     private static final String[] REPORT_SUFFIXES = { "cat", "torn", "wind",
             "hail" };
 
+    private static final Pattern OUTLOOK_LAYER_PATTERN = Pattern.compile(
+            "^day([123])otlk(?:_([0-9]{8}_[0-9]{4}))?_(cat|torn|hail|wind)$");
+
+    private static class ZipGeoJsonFile {
+        private final String day;
+        private final String key;
+        private final boolean timestamped;
+        private final byte[] content;
+
+        private ZipGeoJsonFile(String day, String key, boolean timestamped,
+                byte[] content) {
+            this.day = day;
+            this.key = key;
+            this.timestamped = timestamped;
+            this.content = content;
+        }
+    }
+
     public PluginDataObject[] decode(byte[] data) throws Exception {
         if (data == null || data.length == 0) {
             return new PluginDataObject[0];
@@ -76,15 +98,20 @@ public class SPCDecoder {
     }
 
     private PluginDataObject[] decodeZip(byte[] data) throws Exception {
-        List<byte[]> timestampedFiles = new ArrayList<>();
-        List<byte[]> currentFiles = new ArrayList<>();
+        Map<String, ZipGeoJsonFile> timestampedFiles = new LinkedHashMap<>();
+        Map<String, ZipGeoJsonFile> currentFiles = new LinkedHashMap<>();
         byte[] buffer = new byte[8192];
 
         try (ZipInputStream zip = new ZipInputStream(
                 new ByteArrayInputStream(data))) {
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
-                if (entry.isDirectory() || !isDay1LyrFile(entry.getName())) {
+                if (entry.isDirectory()) {
+                    continue;
+                }
+                ZipGeoJsonFile fileInfo = parseOutlookLayerFile(
+                        entry.getName());
+                if (fileInfo == null) {
                     continue;
                 }
 
@@ -94,31 +121,33 @@ public class SPCDecoder {
                     output.write(buffer, 0, count);
                 }
 
-                byte[] content = output.toByteArray();
-                String fileName = entry.getName();
-                int slash = fileName.lastIndexOf('/');
-                String baseName = slash < 0 ? fileName
-                        : fileName.substring(slash + 1);
-                String stem = baseName.substring(0,
-                        baseName.length() - ".lyr.geojson".length());
-                if (stem.matches(
-                        "day1otlk_[0-9]{8}_[0-9]{4}_(cat|torn|hail|wind)")) {
-                    timestampedFiles.add(content);
+                ZipGeoJsonFile file = new ZipGeoJsonFile(fileInfo.day,
+                        fileInfo.key, fileInfo.timestamped,
+                        output.toByteArray());
+                if (file.timestamped) {
+                    timestampedFiles.put(file.key, file);
                 } else {
-                    currentFiles.add(content);
+                    currentFiles.putIfAbsent(file.key, file);
                 }
             }
         }
 
-        // The SPC archive contains timestamped files and current-name aliases
-        // for the same cycle. Prefer the timestamped set to avoid ingesting
-        // duplicate records from both copies.
-        List<byte[]> selectedFiles = timestampedFiles.isEmpty()
-                ? currentFiles : timestampedFiles;
+        // For each day and outlook type, prefer the timestamped archive file
+        // over its current-name alias. Keep aliases where an archive file is
+        // not present so a partial ZIP can still be ingested.
+        List<ZipGeoJsonFile> selectedFiles = new ArrayList<>(
+                timestampedFiles.values());
+        for (Map.Entry<String, ZipGeoJsonFile> entry : currentFiles
+                .entrySet()) {
+            if (!timestampedFiles.containsKey(entry.getKey())) {
+                selectedFiles.add(entry.getValue());
+            }
+        }
         List<PluginDataObject> records = new ArrayList<>();
-        for (byte[] file : selectedFiles) {
+        for (ZipGeoJsonFile file : selectedFiles) {
             PluginDataObject[] decoded = decodeGeoJson(
-                    new String(file, StandardCharsets.UTF_8).trim());
+                    new String(file.content, StandardCharsets.UTF_8).trim(),
+                    file.day);
             for (PluginDataObject record : decoded) {
                 records.add(record);
             }
@@ -128,22 +157,33 @@ public class SPCDecoder {
         return records.toArray(new PluginDataObject[records.size()]);
     }
 
-    private boolean isDay1LyrFile(String entryName) {
+    private ZipGeoJsonFile parseOutlookLayerFile(String entryName) {
         int slash = entryName.lastIndexOf('/');
         String baseName = slash < 0 ? entryName
                 : entryName.substring(slash + 1);
         if (!baseName.endsWith(".lyr.geojson")) {
-            return false;
+            return null;
         }
 
         String stem = baseName.substring(0,
                 baseName.length() - ".lyr.geojson".length());
-        return stem.matches(
-                "day1otlk_[0-9]{8}_[0-9]{4}_(cat|torn|hail|wind)")
-                || stem.matches("day1otlk_(cat|torn|hail|wind)");
+        Matcher matcher = OUTLOOK_LAYER_PATTERN.matcher(stem);
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        String day = matcher.group(1);
+        String suffix = matcher.group(3);
+        String key = day + "_" + suffix;
+        return new ZipGeoJsonFile(day, key, matcher.group(2) != null, null);
     }
 
     private PluginDataObject[] decodeGeoJson(String input) throws Exception {
+        return decodeGeoJson(input, "1");
+    }
+
+    private PluginDataObject[] decodeGeoJson(String input, String outlookDay)
+            throws Exception {
         List<SPCRecord> records = new ArrayList<>();
 
         FeatureCollection<SimpleFeatureType, SimpleFeature> collection = new SimpleGeoJsonService()
@@ -210,6 +250,7 @@ public class SPCDecoder {
                 record.setValidTime(validTime);
                 record.setExpireTime(expireTime);
                 record.setReportType(type);
+                record.setOutlookDay(outlookDay);
                 record.setTypeCategory(normalizeCategory(label));
                 record.setDisplayLabel(displayLabel);
                 record.setForecaster(getProperty(feature, "FORECASTER"));
@@ -351,6 +392,7 @@ public class SPCDecoder {
                 record.setIssueTime(date);
                 record.setTypeCategory(placemark.getName());
                 record.setReportType(type);
+                record.setOutlookDay("1");
                 record.setReportPart(++reportPart);
                 record.setGeometry(geomFact.createPolygon(modifyLinearRing(
                         polygon.getOuterBoundaryIs().getLinearRing())));

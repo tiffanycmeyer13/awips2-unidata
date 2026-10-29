@@ -611,6 +611,15 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
                 .get("reportType");
         String product = constraint == null ? "Convective Outlook"
                 : constraint.getConstraintValue().toString().trim();
+        RequestConstraint dayConstraint = this.resourceData.getMetadataMap()
+                .get("outlookDay");
+        if (dayConstraint != null
+                && dayConstraint.getConstraintValue() != null) {
+            String day = dayConstraint.getConstraintValue().toString().trim();
+            if (!day.isEmpty()) {
+                return "SPC Day " + day + " " + product;
+            }
+        }
         return "SPC " + product;
 	}
 
