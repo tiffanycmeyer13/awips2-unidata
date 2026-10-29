@@ -274,7 +274,8 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 
     /**
      * Draw a compact, screen-relative legend for the risk categories in the
-     * displayed outlook. Fill opacity does not affect the legend swatches.
+     * displayed outlook. Legend colors and opacity stay fixed when the map
+     * fill's Imaging Properties change.
      */
     private void paintRiskLegend(IGraphicsTarget target,
             PaintProperties paintProps, List<SPCRecord> displayRecords,
@@ -309,9 +310,7 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         y += 22.0;
 
         for (Map.Entry<String, SPCRecord> entry : categories.entrySet()) {
-            RGB categoryColor = applyBrightness(
-                    applyContrast(getReportTypeColor(entry.getValue()),
-                            imaging.getContrast()), imaging.getBrightness());
+            RGB categoryColor = getReportTypeColor(entry.getValue());
             DrawableString swatch = new DrawableString("    ",
                     new RGB(255, 255, 255));
             swatch.setCoordinates(x, y);
@@ -329,7 +328,7 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         }
 
         PaintProperties legendProps = new PaintProperties(paintProps);
-        legendProps.setAlpha(imaging.getAlpha());
+        legendProps.setAlpha(1.0f);
         target.getExtension(ICanvasRenderingExtension.class).drawStrings(
                 legendProps, strings.toArray(new DrawableString[0]));
     }
