@@ -29,4 +29,14 @@
         </resource>
     </extension>
 
+    <extension
+          point="com.raytheon.viz.ui.contextualMenu">
+        <contextualMenu
+              actionClass="edu.ucar.unidata.uf.viz.spc.rsc.SPCFillToggleAction"
+              capabilityClass="edu.ucar.unidata.uf.viz.spc.rsc.SPCResource"
+              name="Show Risk Fill"
+              sortID="500">
+        </contextualMenu>
+    </extension>
+
 </plugin>

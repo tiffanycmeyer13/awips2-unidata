@@ -1,5 +1,6 @@
 package edu.ucar.unidata.uf.viz.spc.rsc;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,6 +9,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.Locale;
 
 import org.eclipse.swt.graphics.RGB;
 import org.geotools.coverage.grid.GeneralGridGeometry;
@@ -64,6 +68,8 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 
     /** Fixed transparency for risk fills, independent of brightness controls. */
     private static final float SPC_FILL_ALPHA = 0.5f;
+
+    private volatile boolean fillEnabled = true;
 
 	private static final transient IUFStatusHandler statusHandler = UFStatus
 			.getHandler(SPCResource.class);
@@ -247,7 +253,7 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
                     applyContrast(getReportTypeColor(record),
                             imaging.getContrast()),
                     brightness);
-            if (brightness > 0.0f) {
+            if (fillEnabled && brightness > 0.0f) {
                 IShadedShape shadedShape = computeShape(target, descriptor,
                         geometry, fillColor);
                 target.drawShadedShape(shadedShape, SPC_FILL_ALPHA);
@@ -273,6 +279,7 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             }
         }
         paintRiskLegend(target, paintProps, drawOrder, imaging);
+        paintProductMetadata(target, paintProps, drawOrder);
 	}
 
     /**
@@ -334,6 +341,65 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         legendProps.setAlpha(1.0f);
         target.getExtension(ICanvasRenderingExtension.class).drawStrings(
                 legendProps, strings.toArray(new DrawableString[0]));
+    }
+
+    /**
+     * Draw product issue/validity details and forecaster in the upper-left
+     * corner, using fields retained on each decoded SPC record.
+     */
+    private void paintProductMetadata(IGraphicsTarget target,
+            PaintProperties paintProps, List<SPCRecord> displayRecords)
+            throws VizException {
+        if (displayRecords.isEmpty()) {
+            return;
+        }
+
+        SPCRecord record = displayRecords.get(0);
+        List<String> lines = new ArrayList<>();
+        String reportType = record.getReportType();
+        lines.add("SPC " + (reportType == null ? "OUTLOOK"
+                : reportType.toUpperCase(Locale.US)));
+        if (record.getIssueTime() != null) {
+            lines.add("ISSUED " + formatUtc(record.getIssueTime()));
+        }
+        Date validTime = record.getValidTime();
+        Date expireTime = record.getExpireTime();
+        if (validTime != null || expireTime != null) {
+            String valid = validTime == null ? "?"
+                    : formatUtc(validTime);
+            String expire = expireTime == null ? "?"
+                    : formatUtc(expireTime);
+            lines.add("VALID " + valid + " - " + expire);
+        }
+        if (record.getForecaster() != null
+                && !record.getForecaster().trim().isEmpty()) {
+            lines.add("FCSTR: " + record.getForecaster());
+        }
+        lines.add("NOAA/NWS/NCEP");
+        lines.add("STORM PREDICTION CENTER");
+
+        List<DrawableString> strings = new ArrayList<>();
+        RGB green = new RGB(0, 255, 0);
+        double y = 16.0;
+        for (String line : lines) {
+            DrawableString text = new DrawableString(line, green);
+            text.setCoordinates(16.0, y);
+            text.verticallAlignment = VerticalAlignment.TOP;
+            text.addTextStyle(TextStyle.BLANKED, new RGB(0, 0, 0));
+            strings.add(text);
+            y += 16.0;
+        }
+
+        PaintProperties metadataProps = new PaintProperties(paintProps);
+        metadataProps.setAlpha(1.0f);
+        target.getExtension(ICanvasRenderingExtension.class).drawStrings(
+                metadataProps, strings.toArray(new DrawableString[0]));
+    }
+
+    private String formatUtc(Date date) {
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HHmm'Z'");
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return formatter.format(date);
     }
 
     private RGB applyContrast(RGB color, float contrast) {
@@ -502,7 +568,18 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 		records.add(obj);
 	}
 
-	@Override
+	    public boolean isFillEnabled() {
+        return fillEnabled;
+    }
+
+    public void setFillEnabled(boolean enabled) {
+        if (fillEnabled != enabled) {
+            fillEnabled = enabled;
+            issueRefresh();
+        }
+    }
+
+@Override
 	public String getName() {
 		RequestConstraint constraint = this.resourceData.getMetadataMap()
                 .get("reportType");
