@@ -236,7 +236,18 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 			newRecords = unprocessedRecords.get(this.displayedDataTime);
 		}
 		
-		for (SPCRecord record : newRecords) {
+		// SPC risk areas are nested. Draw the lower-risk polygons first so
+		// higher-risk fills remain visible over them.
+        List<SPCRecord> drawOrder = new ArrayList<>(newRecords);
+        drawOrder.sort((first, second) -> {
+            Integer firstRisk = first.getRiskLevel();
+            Integer secondRisk = second.getRiskLevel();
+            if (firstRisk == null) {
+                return secondRisk == null ? 0 : -1;
+            }
+            return secondRisk == null ? 1 : firstRisk.compareTo(secondRisk);
+        });
+		for (SPCRecord record : drawOrder) {
 			Geometry geometry = record.getGeometry();
             if (geometry == null || geometry.isEmpty()) {
                 continue;

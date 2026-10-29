@@ -12,6 +12,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.geotools.api.feature.simple.SimpleFeature;
@@ -199,7 +200,12 @@ public class SPCDecoder {
                 }
 
                 SPCRecord record = new SPCRecord();
-                record.setDataTime(new DataTime(issueTime));
+                // Keep the precise publication time in issueTime, but use
+                // the nominal hourly cycle for the CAVE frame time.
+                DateTime frameTime = new DateTime(issueTime, DateTimeZone.UTC)
+                        .withMinuteOfHour(0).withSecondOfMinute(0)
+                        .withMillisOfSecond(0);
+                record.setDataTime(new DataTime(frameTime.toDate()));
                 record.setIssueTime(issueTime);
                 record.setValidTime(validTime);
                 record.setExpireTime(expireTime);
