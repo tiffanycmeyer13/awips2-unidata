@@ -413,13 +413,12 @@ public class SPCDecoder {
     }
 
     private Object getAttribute(SimpleFeature feature, String name) {
-        Object value = feature.getAttribute(name);
-        if (value != null) {
-            return value;
-        }
-        for (int i = 0; i < feature.getFeatureType()
-                .getAttributeCount(); i++) {
-            String attributeName = feature.getFeatureType().getDescriptor(i)
+        // GeoTools attribute-name lookup can be case-sensitive and throws when
+        // a requested name is not present. Search the descriptors first so
+        // lower-case ArcGIS fields work with the decoder's upper-case labels.
+        SimpleFeatureType featureType = feature.getFeatureType();
+        for (int i = 0; i < featureType.getAttributeCount(); i++) {
+            String attributeName = featureType.getDescriptor(i)
                     .getLocalName();
             if (attributeName.equalsIgnoreCase(name)) {
                 return feature.getAttribute(i);
