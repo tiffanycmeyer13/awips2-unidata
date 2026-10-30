@@ -577,6 +577,16 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         if (color != null) {
             return color;
         }
+        if (record.getReportType() != null
+                && record.getReportType().matches(
+                        "Day [4-8] Probabilistic Outlook")
+                && record.getRiskLevel() != null) {
+            if (record.getRiskLevel().intValue() == 15) {
+                return new RGB(255, 255, 0);
+            } else if (record.getRiskLevel().intValue() == 30) {
+                return new RGB(230, 152, 0);
+            }
+        }
 		color = getCapability(ColorableCapability.class).getColor();
 		switch(record.getReportType()) {
 			case("Convective Outlook"):
@@ -672,6 +682,9 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
                 && dayConstraint.getConstraintValue() != null) {
             String day = dayConstraint.getConstraintValue().toString().trim();
             if (!day.isEmpty()) {
+                if (product.startsWith("Day " + day + " ")) {
+                    return "SPC " + product;
+                }
                 return "SPC Day " + day + " " + product;
             }
         }

@@ -84,4 +84,59 @@
             <substitute key="reportType" value="Tornado Outlook" />
         </contribute>
     </contribute>
+    <contribute xsi:type="subMenu" menuText="Day 4"
+        id="spcOutlookDay4">
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Probabilistic Outlook" timeQuery="true"
+            id="spcDay4ProbabilisticOutlook">
+            <substitute key="outlookDay" value="4" />
+            <substitute key="reportType"
+                value="Day 4 Probabilistic Outlook" />
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Day 5"
+        id="spcOutlookDay5">
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Probabilistic Outlook" timeQuery="true"
+            id="spcDay5ProbabilisticOutlook">
+            <substitute key="outlookDay" value="5" />
+            <substitute key="reportType"
+                value="Day 5 Probabilistic Outlook" />
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Day 6"
+        id="spcOutlookDay6">
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Probabilistic Outlook" timeQuery="true"
+            id="spcDay6ProbabilisticOutlook">
+            <substitute key="outlookDay" value="6" />
+            <substitute key="reportType"
+                value="Day 6 Probabilistic Outlook" />
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Day 7"
+        id="spcOutlookDay7">
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Probabilistic Outlook" timeQuery="true"
+            id="spcDay7ProbabilisticOutlook">
+            <substitute key="outlookDay" value="7" />
+            <substitute key="reportType"
+                value="Day 7 Probabilistic Outlook" />
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Day 8"
+        id="spcOutlookDay8">
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Probabilistic Outlook" timeQuery="true"
+            id="spcDay8ProbabilisticOutlook">
+            <substitute key="outlookDay" value="8" />
+            <substitute key="reportType"
+                value="Day 8 Probabilistic Outlook" />
+        </contribute>
+    </contribute>
 </menuTemplate>

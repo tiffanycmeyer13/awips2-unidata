@@ -201,16 +201,40 @@ public class SPCDecoder {
                 SimpleFeature feature = iterator.next();
                 String label = getProperty(feature, "LABEL");
                 String displayLabel = getProperty(feature, "LABEL2");
+                String source = getProperty(feature, "idp_source");
+                String featureDay = getOutlookDay(source, outlookDay);
+                Integer riskLevel = parseInteger(
+                        getAttribute(feature, "DN"));
+                boolean featureServiceOutlook = isFeatureServiceOutlook(
+                        source, featureDay);
 
-                // Conditional-intensity layers are separate SPC products and
-                // are intentionally not included in the four outlook layers.
+                // Day 5-8 service layers omit LABEL and use DN=0 as the
+                // no-risk placeholder. Convert it to a normal SPC no-risk
+                // record so the display and product browser still have a time.
+                if (featureServiceOutlook
+                        && (label == null || label.isEmpty())) {
+                    if (riskLevel == null) {
+                        continue;
+                    }
+                    if (riskLevel.intValue() <= 0) {
+                        label = "Less than 15% All Areas";
+                        displayLabel = label;
+                    } else {
+                        label = String.valueOf(riskLevel);
+                        displayLabel = riskLevel + "% Any Severe Risk";
+                    }
+                }
+
+                // Conditional-intensity layers are intentionally omitted.
                 if (label == null || label.isEmpty()
                         || label.toUpperCase(Locale.US).startsWith("CIG")) {
                     continue;
                 }
 
                 boolean noRisk = isNoRiskLabel(label);
-                String type = getReportType(label, displayLabel);
+                String type = featureServiceOutlook
+                        ? "Day " + featureDay + " Probabilistic Outlook"
+                        : getReportType(label, displayLabel, featureDay);
                 if (type == null && noRisk) {
                     type = layerReportType;
                 }
@@ -237,6 +261,15 @@ public class SPCDecoder {
                 Date issueTime = parseTime(
                         getProperty(feature, "ISSUE_ISO"),
                         getProperty(feature, "ISSUE"));
+                if (issueTime == null && featureServiceOutlook) {
+                    issueTime = parseArcGisDate(
+                            getAttribute(feature, "idp_filedate"));
+                    // Layers 5-8 omit ISSUE; SPC publishes these daily at 09Z.
+                    if (issueTime != null) {
+                        issueTime = new DateTime(issueTime, DateTimeZone.UTC)
+                                .withTime(9, 0, 0, 0).toDate();
+                    }
+                }
                 Date validTime = parseTime(
                         getProperty(feature, "VALID_ISO"),
                         getProperty(feature, "VALID"));
@@ -250,6 +283,17 @@ public class SPCDecoder {
                     logger.info("Skipping SPC feature without ISSUE time");
                     continue;
                 }
+                if (featureServiceOutlook && validTime == null) {
+                    int dayNumber = Integer.parseInt(featureDay);
+                    validTime = new DateTime(issueTime, DateTimeZone.UTC)
+                            .plusDays(dayNumber - 1)
+                            .withTime(12, 0, 0, 0).toDate();
+                }
+                if (featureServiceOutlook && expireTime == null
+                        && validTime != null) {
+                    expireTime = new DateTime(validTime, DateTimeZone.UTC)
+                            .plusDays(1).toDate();
+                }
 
                 SPCRecord record = new SPCRecord();
                 // Keep the precise publication time in issueTime, but use
@@ -262,12 +306,12 @@ public class SPCDecoder {
                 record.setValidTime(validTime);
                 record.setExpireTime(expireTime);
                 record.setReportType(type);
-                record.setOutlookDay(outlookDay);
+                record.setOutlookDay(featureDay);
                 record.setTypeCategory(
                         noRisk ? "No Risk" : normalizeCategory(label));
                 record.setDisplayLabel(noRisk ? label : displayLabel);
                 record.setForecaster(getProperty(feature, "FORECASTER"));
-                record.setRiskLevel(parseInteger(feature.getAttribute("DN")));
+                record.setRiskLevel(riskLevel);
                 record.setFillColor(getProperty(feature, "fill"));
                 record.setStrokeColor(getProperty(feature, "stroke"));
                 record.setReportPart(++reportPart);
@@ -300,7 +344,8 @@ public class SPCDecoder {
                 && normalized.endsWith(" all areas");
     }
 
-    private String getReportType(String label, String displayLabel) {
+    private String getReportType(String label, String displayLabel,
+            String outlookDay) {
         for (Entry<String, String> entry : SPCRecord.CONVECTIVE_OUTLOOK
                 .entrySet()) {
             if (entry.getValue().equalsIgnoreCase(label)) {
@@ -310,6 +355,9 @@ public class SPCDecoder {
 
         String text = displayLabel == null ? "" : displayLabel
                 .toLowerCase(Locale.US);
+        if (text.contains("any severe") && outlookDay != null) {
+            return "Day " + outlookDay + " Probabilistic Outlook";
+        }
         if (text.contains("tornado")) {
             return "Tornado Outlook";
         } else if (text.contains("hail")) {
@@ -360,8 +408,65 @@ public class SPCDecoder {
     }
 
     private String getProperty(SimpleFeature feature, String name) {
-        Object value = feature.getAttribute(name);
+        Object value = getAttribute(feature, name);
         return value == null ? null : value.toString().trim();
+    }
+
+    private Object getAttribute(SimpleFeature feature, String name) {
+        Object value = feature.getAttribute(name);
+        if (value != null) {
+            return value;
+        }
+        for (int i = 0; i < feature.getFeatureType()
+                .getAttributeCount(); i++) {
+            String attributeName = feature.getFeatureType().getDescriptor(i)
+                    .getLocalName();
+            if (attributeName.equalsIgnoreCase(name)) {
+                return feature.getAttribute(i);
+            }
+        }
+        return null;
+    }
+
+    private String getOutlookDay(String source, String defaultDay) {
+        if (source != null) {
+            Matcher matcher = Pattern.compile("(?i)^day([1-8])otlk_.*")
+                    .matcher(source.trim());
+            if (matcher.matches()) {
+                return matcher.group(1);
+            }
+        }
+        return defaultDay == null ? "1" : defaultDay;
+    }
+
+    private boolean isFeatureServiceOutlook(String source, String day) {
+        if (source == null || day == null || day.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            int dayNumber = Integer.parseInt(day);
+            return dayNumber >= 4 && dayNumber <= 8
+                    && source.toLowerCase(Locale.US).contains("otlk_");
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private Date parseArcGisDate(Object value) {
+        if (value instanceof Date) {
+            return (Date) value;
+        }
+        if (value instanceof Number) {
+            return new Date(((Number) value).longValue());
+        }
+        if (value != null) {
+            try {
+                return DateTime.parse(value.toString()).toDate();
+            } catch (IllegalArgumentException e) {
+                return parseTime(null, value.toString());
+            }
+        }
+        return null;
     }
 
     private Integer parseInteger(Object value) {

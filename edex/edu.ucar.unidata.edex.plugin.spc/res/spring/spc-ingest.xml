@@ -7,6 +7,9 @@
     <bean id="spcArchivePoller"
         class="edu.ucar.unidata.edex.plugin.spc.SPCArchivePoller" />
 
+    <bean id="spcFeatureServerPoller"
+        class="edu.ucar.unidata.edex.plugin.spc.SPCFeatureServerPoller" />
+
     <bean id="spcDecoder"
         class="edu.ucar.unidata.edex.plugin.spc.SPCDecoder" />
 

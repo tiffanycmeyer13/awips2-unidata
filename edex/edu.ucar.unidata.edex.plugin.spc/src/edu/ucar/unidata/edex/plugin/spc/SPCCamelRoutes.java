@@ -19,6 +19,15 @@ public class SPCCamelRoutes extends EDEXRouteBuilder {
             .end()
             .setId("spcArchivePollRoute");
 
+        // Poll the NOAA FeatureServer for the probabilistic Day 4-8
+        // outlooks and send changed GeoJSON through the standard ingest queue.
+        from("timer:spcFeatureServerPoller?delay=30000&period=900000")
+            .bean("spcFeatureServerPoller", "poll")
+            .split(body())
+                .to("jms-durable:queue:Ingest.Spc")
+            .end()
+            .setId("spcFeatureServerPollRoute");
+
         from("jms-durable:queue:Ingest.Spc")
             .setHeader("pluginName", constant("spc"))
             .doTry()
