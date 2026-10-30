@@ -1,7 +1,9 @@
 package edu.ucar.unidata.uf.viz.spc.rsc;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -19,6 +21,8 @@ import com.raytheon.uf.viz.core.rsc.LoadProperties;
  * @author mjames
  */
 @XmlAccessorType(XmlAccessType.NONE)
+@XmlRootElement(name = "spcResourceData")
+@XmlType(name = "spcResourceData")
 public class SPCResourceData extends AbstractRequestableResourceData {
 
     @Override

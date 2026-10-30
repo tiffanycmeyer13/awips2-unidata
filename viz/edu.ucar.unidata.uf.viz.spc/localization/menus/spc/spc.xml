@@ -8,28 +8,7 @@
 		menuText="SPC 4-Panel Overview" id="spc.resource" useReferenceTime="true">
 	</contribute>
 	
-	<contribute xsi:type="bundleItem" file="bundles/spcForecast.xml"
-		menuText="SPC Convective Outlook" id="spc.resource" useReferenceTime="true">
-		<substitute key="report" value="Convective Outlook" />
-		<substitute value="0" key="posOff"/>
-	</contribute>
-
-	<contribute xsi:type="bundleItem" file="bundles/spcForecast.xml"
-		menuText="SPC Tornado Outlook" id="spc.resource" useReferenceTime="true">
-		<substitute key="report" value="Tornado Outlook" />
-		<substitute value="0" key="posOff"/>
-	</contribute>
-
-	<contribute xsi:type="bundleItem" file="bundles/spcForecast.xml"
-		menuText="SPC Wind Outlook" id="spc.resource" useReferenceTime="true">
-		<substitute key="report" value="Wind Outlook" />
-		<substitute value="0" key="posOff"/>
-	</contribute>
-
-	<contribute xsi:type="bundleItem" file="bundles/spcForecast.xml"
-		menuText="SPC Hail Outlook" id="spc.resource" useReferenceTime="true">
-		<substitute key="report" value="Hail Outlook" />
-		<substitute value="0" key="posOff"/>
-	</contribute>
+	<contribute xsi:type="subinclude"
+		fileName="menus/spc/OutlookMenus.xml" />
 
 </menuTemplate>
