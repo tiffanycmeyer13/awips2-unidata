@@ -9,6 +9,16 @@ public class SPCCamelRoutes extends EDEXRouteBuilder {
 
     @Override
     public void configure() throws Exception {
+        // Poll SPC's archive on a single EDEX host. The archive poller checks
+        // recent scheduled cycles and sends newly published ZIPs through the
+        // same durable queue used by the existing ingest path.
+        from("timer:spcArchivePoller?delay=15000&period=300000")
+            .bean("spcArchivePoller", "poll")
+            .split(body())
+                .to("jms-durable:queue:Ingest.Spc")
+            .end()
+            .setId("spcArchivePollRoute");
+
         from("jms-durable:queue:Ingest.Spc")
             .setHeader("pluginName", constant("spc"))
             .doTry()

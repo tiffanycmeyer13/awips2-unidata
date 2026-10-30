@@ -4,6 +4,9 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans
     http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+    <bean id="spcArchivePoller"
+        class="edu.ucar.unidata.edex.plugin.spc.SPCArchivePoller" />
+
     <bean id="spcDecoder"
         class="edu.ucar.unidata.edex.plugin.spc.SPCDecoder" />
 
