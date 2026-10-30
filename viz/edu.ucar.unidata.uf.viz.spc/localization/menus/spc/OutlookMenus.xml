@@ -9,12 +9,6 @@
             <substitute key="outlookDay" value="1" />
         </contribute>
         <contribute xsi:type="bundleItem" useReferenceTime="true"
-            file="bundles/spc4Pane.xml"
-            menuText="Day 2 4-Panel Convective Outlook" timeQuery="true"
-            id="spcDay2FourPanelOutlook">
-            <substitute key="outlookDay" value="2" />
-        </contribute>
-        <contribute xsi:type="bundleItem" useReferenceTime="true"
             file="bundles/spc/SPCOutlook.xml"
             menuText="Day 1 Convective Outlook (Overview)" timeQuery="true"
             id="spcDay1ConvectiveOutlook">
@@ -40,6 +34,8 @@
             <substitute key="outlookDay" value="1" />
             <substitute key="reportType" value="Tornado Outlook" />
         </contribute>
+        <contribute xsi:type="separator" id="spcOutlookSeparatorAfterDay1" />
+
         <contribute xsi:type="bundleItem" useReferenceTime="true"
             file="bundles/spc/SPCOutlook.xml"
             menuText="Day 2 Convective Outlook (Overview)" timeQuery="true"
@@ -67,12 +63,24 @@
             <substitute key="reportType" value="Tornado Outlook" />
         </contribute>
         <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc4Pane.xml"
+            menuText="Day 2 4-Panel Convective Outlook" timeQuery="true"
+            id="spcDay2FourPanelOutlook">
+            <substitute key="outlookDay" value="2" />
+        </contribute>
+        <contribute xsi:type="separator" id="spcOutlookSeparatorAfterDay2" />
+
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
             file="bundles/spc/SPCOutlook.xml"
             menuText="Day 3 Convective Outlook (Overview)" timeQuery="true"
             id="spcDay3ConvectiveOutlook">
             <substitute key="outlookDay" value="3" />
             <substitute key="reportType" value="Convective Outlook" />
         </contribute>
+        <contribute xsi:type="separator" id="spcOutlookSeparatorBeforeDay4to8" />
+        <contribute xsi:type="titleItem"
+            titleText="Days 4-8 Severe Outlook" id="spcDays4to8Title" />
+
         <contribute xsi:type="bundleItem" useReferenceTime="true"
             file="bundles/spc/SPCOutlook.xml"
             menuText="Day 4 Total Prob Severe Thunderstorms"
