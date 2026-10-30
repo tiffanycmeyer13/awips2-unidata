@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
-	<contribute xsi:type="separator" id="separator4"/>
-	<contribute xsi:type="titleItem" titleText="---- Storm Prediction Center ----" id="SPCLine"/>
-
-	<contribute xsi:type="bundleItem" file="bundles/spc4Pane.xml"
-		menuText="SPC 4-Panel Overview" id="spc.resource" useReferenceTime="true">
-	</contribute>
-	
-	<contribute xsi:type="subinclude"
-		fileName="menus/spc/OutlookMenus.xml" />
-
+    <contribute xsi:type="separator" id="separator4"/>
+    <contribute xsi:type="titleItem"
+        titleText="---- Storm Prediction Center ----" id="SPCLine"/>
+    <contribute xsi:type="subinclude"
+        fileName="menus/spc/OutlookMenus.xml"/>
 </menuTemplate>

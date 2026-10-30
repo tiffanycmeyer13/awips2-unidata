@@ -2,96 +2,123 @@
 <menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <contribute xsi:type="subMenu" menuText="SPC Convective Outlooks"
         id="spcConvectiveOutlooks">
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 1 Convective Outlook (Overview)"
-        timeQuery="true" id="spcDay1ConvectiveOutlook">
-        <substitute key="outlookDay" value="1" />
-        <substitute key="reportType" value="Convective Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 1 Hail Outlook"
-        timeQuery="true" id="spcDay1HailOutlook">
-        <substitute key="outlookDay" value="1" />
-        <substitute key="reportType" value="Hail Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 1 Convective Wind Outlook"
-        timeQuery="true" id="spcDay1WindOutlook">
-        <substitute key="outlookDay" value="1" />
-        <substitute key="reportType" value="Wind Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 1 Tornado Outlook"
-        timeQuery="true" id="spcDay1TornadoOutlook">
-        <substitute key="outlookDay" value="1" />
-        <substitute key="reportType" value="Tornado Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 2 Convective Outlook (Overview)"
-        timeQuery="true" id="spcDay2ConvectiveOutlook">
-        <substitute key="outlookDay" value="2" />
-        <substitute key="reportType" value="Convective Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 2 Hail Outlook"
-        timeQuery="true" id="spcDay2HailOutlook">
-        <substitute key="outlookDay" value="2" />
-        <substitute key="reportType" value="Hail Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 2 Convective Wind Outlook"
-        timeQuery="true" id="spcDay2WindOutlook">
-        <substitute key="outlookDay" value="2" />
-        <substitute key="reportType" value="Wind Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 2 Tornado Outlook"
-        timeQuery="true" id="spcDay2TornadoOutlook">
-        <substitute key="outlookDay" value="2" />
-        <substitute key="reportType" value="Tornado Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 3 Convective Outlook (Overview)"
-        timeQuery="true" id="spcDay3ConvectiveOutlook">
-        <substitute key="outlookDay" value="3" />
-        <substitute key="reportType" value="Convective Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 4 Total Prob Severe Thunderstorms"
-        timeQuery="true" id="spcDay4ProbabilisticOutlook">
-        <substitute key="outlookDay" value="4" />
-        <substitute key="reportType" value="Day 4 Probabilistic Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 5 Total Prob Severe Thunderstorms"
-        timeQuery="true" id="spcDay5ProbabilisticOutlook">
-        <substitute key="outlookDay" value="5" />
-        <substitute key="reportType" value="Day 5 Probabilistic Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 6 Total Prob Severe Thunderstorms"
-        timeQuery="true" id="spcDay6ProbabilisticOutlook">
-        <substitute key="outlookDay" value="6" />
-        <substitute key="reportType" value="Day 6 Probabilistic Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 7 Total Prob Severe Thunderstorms"
-        timeQuery="true" id="spcDay7ProbabilisticOutlook">
-        <substitute key="outlookDay" value="7" />
-        <substitute key="reportType" value="Day 7 Probabilistic Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/spc/SPCOutlook.xml" menuText="Day 8 Total Prob Severe Thunderstorms"
-        timeQuery="true" id="spcDay8ProbabilisticOutlook">
-        <substitute key="outlookDay" value="8" />
-        <substitute key="reportType" value="Day 8 Probabilistic Outlook" />
-    </contribute>
-    <contribute xsi:type="bundleItem" useReferenceTime="true"
-        file="bundles/Redbook.xml"
-        menuText="Active Mesoscale Disc Summary" timeQuery="true"
-        id="activeMesoscaleDiscSummary">
-        <substitute key="wmo" value="PGNA00" />
-        <substitute key="posOff" value="0" />
-    </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc4Pane.xml"
+            menuText="Day 1 4-Panel Convective Outlook" timeQuery="true"
+            id="spcDay1FourPanelOutlook">
+            <substitute key="outlookDay" value="1" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc4Pane.xml"
+            menuText="Day 2 4-Panel Convective Outlook" timeQuery="true"
+            id="spcDay2FourPanelOutlook">
+            <substitute key="outlookDay" value="2" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 1 Convective Outlook (Overview)" timeQuery="true"
+            id="spcDay1ConvectiveOutlook">
+            <substitute key="outlookDay" value="1" />
+            <substitute key="reportType" value="Convective Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml" menuText="Day 1 Hail Outlook"
+            timeQuery="true" id="spcDay1HailOutlook">
+            <substitute key="outlookDay" value="1" />
+            <substitute key="reportType" value="Hail Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 1 Convective Wind Outlook" timeQuery="true"
+            id="spcDay1WindOutlook">
+            <substitute key="outlookDay" value="1" />
+            <substitute key="reportType" value="Wind Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml" menuText="Day 1 Tornado Outlook"
+            timeQuery="true" id="spcDay1TornadoOutlook">
+            <substitute key="outlookDay" value="1" />
+            <substitute key="reportType" value="Tornado Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 2 Convective Outlook (Overview)" timeQuery="true"
+            id="spcDay2ConvectiveOutlook">
+            <substitute key="outlookDay" value="2" />
+            <substitute key="reportType" value="Convective Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml" menuText="Day 2 Hail Outlook"
+            timeQuery="true" id="spcDay2HailOutlook">
+            <substitute key="outlookDay" value="2" />
+            <substitute key="reportType" value="Hail Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 2 Convective Wind Outlook" timeQuery="true"
+            id="spcDay2WindOutlook">
+            <substitute key="outlookDay" value="2" />
+            <substitute key="reportType" value="Wind Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml" menuText="Day 2 Tornado Outlook"
+            timeQuery="true" id="spcDay2TornadoOutlook">
+            <substitute key="outlookDay" value="2" />
+            <substitute key="reportType" value="Tornado Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 3 Convective Outlook (Overview)" timeQuery="true"
+            id="spcDay3ConvectiveOutlook">
+            <substitute key="outlookDay" value="3" />
+            <substitute key="reportType" value="Convective Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 4 Total Prob Severe Thunderstorms"
+            timeQuery="true" id="spcDay4ProbabilisticOutlook">
+            <substitute key="outlookDay" value="4" />
+            <substitute key="reportType"
+                value="Day 4 Probabilistic Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 5 Total Prob Severe Thunderstorms"
+            timeQuery="true" id="spcDay5ProbabilisticOutlook">
+            <substitute key="outlookDay" value="5" />
+            <substitute key="reportType"
+                value="Day 5 Probabilistic Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 6 Total Prob Severe Thunderstorms"
+            timeQuery="true" id="spcDay6ProbabilisticOutlook">
+            <substitute key="outlookDay" value="6" />
+            <substitute key="reportType"
+                value="Day 6 Probabilistic Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 7 Total Prob Severe Thunderstorms"
+            timeQuery="true" id="spcDay7ProbabilisticOutlook">
+            <substitute key="outlookDay" value="7" />
+            <substitute key="reportType"
+                value="Day 7 Probabilistic Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/spc/SPCOutlook.xml"
+            menuText="Day 8 Total Prob Severe Thunderstorms"
+            timeQuery="true" id="spcDay8ProbabilisticOutlook">
+            <substitute key="outlookDay" value="8" />
+            <substitute key="reportType"
+                value="Day 8 Probabilistic Outlook" />
+        </contribute>
+        <contribute xsi:type="bundleItem" useReferenceTime="true"
+            file="bundles/Redbook.xml"
+            menuText="Active Mesoscale Disc Summary" timeQuery="true"
+            id="activeMesoscaleDiscSummary">
+            <substitute key="wmo" value="PGNA00" />
+            <substitute key="posOff" value="0" />
+        </contribute>
     </contribute>
 </menuTemplate>
