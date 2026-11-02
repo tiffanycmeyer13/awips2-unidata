@@ -4,7 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +23,8 @@ import com.raytheon.uf.common.status.UFStatus;
  * Polls the NOAA SPC Outlooks FeatureServer for Day 4-8 GeoJSON.
  *
  * The service exposes the current probabilistic outlook as GeoJSON layers.
- * Changed layer responses are forwarded to the standard SPC ingest queue.
+ * Changed layer responses are saved under /awips2/data_store/spc and their
+ * file paths are forwarded to the standard SPC ingest queue.
  */
 public class SPCFeatureServerPoller {
 
@@ -36,13 +43,22 @@ public class SPCFeatureServerPoller {
     private final IUFStatusHandler logger = UFStatus
             .getHandler(SPCFeatureServerPoller.class);
 
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    private static final DateTimeFormatter HOUR_FORMAT =
+            DateTimeFormatter.ofPattern("HH");
+
+    private static final DateTimeFormatter TIME_FORMAT =
+            DateTimeFormatter.ofPattern("HHmm");
+
     private final Map<Integer, String> lastHashes = new HashMap<>();
 
     /**
      * Return changed Day 4-8 FeatureCollections.
      */
-    public synchronized List<byte[]> poll() {
-        List<byte[]> changedLayers = new ArrayList<>();
+    public synchronized List<String> poll() {
+        List<String> changedLayers = new ArrayList<>();
         for (int layerId : LAYER_IDS) {
             String url = FEATURE_SERVER_URL + layerId
                     + "/query?where=1%3D1&outFields=*&returnGeometry=true"
@@ -51,10 +67,12 @@ public class SPCFeatureServerPoller {
                 byte[] response = download(url);
                 String hash = sha256(response);
                 if (!hash.equals(lastHashes.get(layerId))) {
+                    int outlookDay = layerId - 17;
+                    String filePath = saveLayer(outlookDay, response);
                     lastHashes.put(layerId, hash);
-                    changedLayers.add(response);
-                    logger.info("Found changed SPC Day "
-                            + (layerId - 17) + " FeatureServer layer");
+                    changedLayers.add(filePath);
+                    logger.info("Saved changed SPC Day " + outlookDay
+                            + " FeatureServer layer to " + filePath);
                 }
             } catch (Exception e) {
                 logger.warn("Unable to retrieve SPC FeatureServer layer "
@@ -62,6 +80,21 @@ public class SPCFeatureServerPoller {
             }
         }
         return changedLayers;
+    }
+
+    private String saveLayer(int outlookDay, byte[] content)
+            throws Exception {
+        LocalDateTime savedTime = LocalDateTime.now(ZoneOffset.UTC);
+        String date = savedTime.format(DATE_FORMAT);
+        String hour = savedTime.format(HOUR_FORMAT);
+        String fileName = "day" + outlookDay + "otlk_" + date + "_"
+                + savedTime.format(TIME_FORMAT) + ".geojson";
+        Path directory = Paths.get("/awips2/data_store/spc").resolve(date)
+                .resolve(hour);
+        Files.createDirectories(directory);
+        Path geoJson = directory.resolve(fileName);
+        Files.write(geoJson, content);
+        return geoJson.toAbsolutePath().toString();
     }
 
     private byte[] download(String url) throws Exception {

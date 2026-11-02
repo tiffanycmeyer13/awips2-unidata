@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
@@ -27,8 +30,8 @@ import com.raytheon.uf.common.status.UFStatus;
  * The archive publishes files under:
  * https://www.spc.noaa.gov/products/outlook/archive/<year>/
  *
- * Newly seen or revised ZIP contents are returned to the Camel route, which
- * sends them through the normal SPC ingest queue and decoder.
+ * Newly seen or revised ZIPs are saved under /awips2/data_store/spc and the
+ * file paths are returned to the Camel route for normal ingest.
  */
 public class SPCArchivePoller {
 
@@ -65,8 +68,8 @@ public class SPCArchivePoller {
     /**
      * Check recent scheduled archive URLs and return new or revised ZIPs.
      */
-    public synchronized List<byte[]> poll() {
-        List<byte[]> archives = new ArrayList<>();
+    public synchronized List<String> poll() {
+        List<String> archives = new ArrayList<>();
         Instant now = Instant.now();
 
         for (int dayOffset = 0; dayOffset <= 1; dayOffset++) {
@@ -93,8 +96,9 @@ public class SPCArchivePoller {
                     }
 
                     try {
-                        if (downloadIfChanged(url, state, now, archives)) {
-                            logger.info("Queued new SPC outlook archive: "
+                        if (downloadIfChanged(url, state, now, archives, issueDate,
+                                cycle)) {
+                            logger.info("Saved new SPC outlook archive: "
                                     + url);
                         }
                     } catch (Exception e) {
@@ -118,7 +122,8 @@ public class SPCArchivePoller {
     }
 
     private boolean downloadIfChanged(String url, ArchiveState state,
-            Instant now, List<byte[]> archives) throws Exception {
+            Instant now, List<String> archives, LocalDate issueDate,
+            LocalTime cycle) throws Exception {
         HttpURLConnection connection = (HttpURLConnection) new URL(url)
                 .openConnection();
         connection.setRequestMethod("HEAD");
@@ -151,14 +156,29 @@ public class SPCArchivePoller {
 
         byte[] content = download(url);
         String sha256 = sha256(content);
-        state.metadataToken = metadata;
         if (sha256.equals(state.sha256)) {
+            state.metadataToken = metadata;
             return false;
         }
 
+        String archivePath = saveArchive(url, issueDate, cycle, content);
+        state.metadataToken = metadata;
         state.sha256 = sha256;
-        archives.add(content);
+        archives.add(archivePath);
         return true;
+    }
+
+    private String saveArchive(String url, LocalDate issueDate,
+            LocalTime cycle, byte[] content) throws Exception {
+        String urlPath = new URL(url).getPath();
+        String fileName = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+        Path directory = Paths.get("/awips2/data_store/spc")
+                .resolve(issueDate.format(DATE_FORMAT))
+                .resolve(cycle.format(DateTimeFormatter.ofPattern("HH")));
+        Files.createDirectories(directory);
+        Path archive = directory.resolve(fileName);
+        Files.write(archive, content);
+        return archive.toAbsolutePath().toString();
     }
 
     private byte[] download(String url) throws Exception {
