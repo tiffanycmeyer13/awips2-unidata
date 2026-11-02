@@ -29,7 +29,8 @@ import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.MultiPolygon;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
-import com.raytheon.uf.common.json.geo.SimpleGeoJsonService;
+import com.raytheon.uf.common.json.BasicJsonService;
+import com.raytheon.uf.common.json.geo.GeoJsonMapUtil;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.DataTime;
@@ -178,6 +179,31 @@ public class SPCDecoder {
         return new ZipGeoJsonFile(day, key, matcher.group(2) != null, null);
     }
 
+    @SuppressWarnings("unchecked")
+    private FeatureCollection<SimpleFeatureType, SimpleFeature> deserializeFeatureCollection(
+            String input) throws Exception {
+        Map<String, Object> geoJson = (Map<String, Object>) new BasicJsonService()
+                .deserialize(new ByteArrayInputStream(
+                        input.getBytes(StandardCharsets.UTF_8)),
+                        LinkedHashMap.class);
+        Object featureList = geoJson.get("features");
+        if (featureList instanceof List<?>) {
+            for (Object featureObject : (List<?>) featureList) {
+                if (featureObject instanceof Map<?, ?>) {
+                    Map<String, Object> feature =
+                            (Map<String, Object>) featureObject;
+                    Object id = feature.get("id");
+                    if (id != null && !(id instanceof String)) {
+                        // GeoJSON permits numeric IDs, while AWIPS'
+                        // GeoJsonMapUtil casts feature IDs directly to String.
+                        feature.put("id", id.toString());
+                    }
+                }
+            }
+        }
+        return new GeoJsonMapUtil().populateFeatureCollection(geoJson);
+    }
+
     private PluginDataObject[] decodeGeoJson(String input) throws Exception {
         return decodeGeoJson(input, "1", null);
     }
@@ -191,9 +217,8 @@ public class SPCDecoder {
             String layerReportType) throws Exception {
         List<SPCRecord> records = new ArrayList<>();
 
-        FeatureCollection<SimpleFeatureType, SimpleFeature> collection = new SimpleGeoJsonService()
-                .deserializeFeatureCollection(new ByteArrayInputStream(
-                        input.getBytes(StandardCharsets.UTF_8)));
+        FeatureCollection<SimpleFeatureType, SimpleFeature> collection =
+                deserializeFeatureCollection(input);
 
         int reportPart = 0;
         try (FeatureIterator<SimpleFeature> iterator = collection.features()) {

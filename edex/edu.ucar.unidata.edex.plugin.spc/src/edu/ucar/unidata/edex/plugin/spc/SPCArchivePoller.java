@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -124,45 +123,18 @@ public class SPCArchivePoller {
     private boolean downloadIfChanged(String url, ArchiveState state,
             Instant now, List<String> archives, LocalDate issueDate,
             LocalTime cycle) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url)
-                .openConnection();
-        connection.setRequestMethod("HEAD");
-        connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
-        connection.setReadTimeout(READ_TIMEOUT_MILLIS);
-        connection.setRequestProperty("User-Agent",
-                "Unidata-AWIPS-SPC-Outlook-Poller");
-        int status;
-        String metadata;
-        try {
-            status = connection.getResponseCode();
-            if (status == HttpURLConnection.HTTP_NOT_FOUND) {
-                state.lastChecked = now;
-                return false;
-            }
-            if (status != HttpURLConnection.HTTP_OK) {
-                throw new IllegalStateException(
-                        "SPC HEAD request returned HTTP " + status);
-            }
-            metadata = getMetadataToken(connection);
-        } finally {
-            connection.disconnect();
-        }
-
+        byte[] content = download(url);
         state.lastChecked = now;
-        if (state.sha256 != null && metadata != null
-                && metadata.equals(state.metadataToken)) {
+        if (content == null) {
             return false;
         }
 
-        byte[] content = download(url);
         String sha256 = sha256(content);
         if (sha256.equals(state.sha256)) {
-            state.metadataToken = metadata;
             return false;
         }
 
         String archivePath = saveArchive(url, issueDate, cycle, content);
-        state.metadataToken = metadata;
         state.sha256 = sha256;
         archives.add(archivePath);
         return true;
@@ -185,15 +157,21 @@ public class SPCArchivePoller {
         HttpURLConnection connection = (HttpURLConnection) new URL(url)
                 .openConnection();
         connection.setRequestMethod("GET");
+        connection.setRequestProperty("User-Agent",
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                        + "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+        connection.setRequestProperty("Accept",
+                "application/zip,application/octet-stream,*/*");
         connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
         connection.setReadTimeout(READ_TIMEOUT_MILLIS);
-        connection.setRequestProperty("User-Agent",
-                "Unidata-AWIPS-SPC-Outlook-Poller");
         try {
             int status = connection.getResponseCode();
+            if (status == HttpURLConnection.HTTP_NOT_FOUND) {
+                return null;
+            }
             if (status != HttpURLConnection.HTTP_OK) {
                 throw new IllegalStateException(
-                        "SPC download returned HTTP " + status);
+                        "SPC GET request returned HTTP " + status);
             }
             try (InputStream input = connection.getInputStream();
                     ByteArrayOutputStream output = new ByteArrayOutputStream()) {
@@ -217,18 +195,6 @@ public class SPCArchivePoller {
         } finally {
             connection.disconnect();
         }
-    }
-
-    private String getMetadataToken(HttpURLConnection connection) {
-        String etag = connection.getHeaderField("ETag");
-        long lastModified = connection.getLastModified();
-        long contentLength = connection.getContentLengthLong();
-        if ((etag == null || etag.isEmpty()) && lastModified == 0
-                && contentLength < 0) {
-            return null;
-        }
-        return String.valueOf(etag) + ":" + lastModified + ":"
-                + contentLength;
     }
 
     private String sha256(byte[] content) throws Exception {
@@ -260,7 +226,6 @@ public class SPCArchivePoller {
 
     private static class ArchiveState {
         private Instant lastChecked;
-        private String metadataToken;
         private String sha256;
     }
 }
