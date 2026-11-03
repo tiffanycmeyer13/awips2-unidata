@@ -478,8 +478,20 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             anchorX = usCenterPixel[0];
             anchorY = usCenterPixel[1];
         } else {
-            // Keep the notice visible when a zoomed view excludes the
-            // central-U.S. anchor.
+            // If the U.S. anchor is outside this zoomed view, only show the
+            // notice when the viewport itself is over the contiguous U.S.
+            double[] viewCenterWorld = descriptor.pixelToWorld(
+                    new double[] { viewCenterX, viewCenterY },
+                    com.raytheon.uf.common.geospatial.MapUtil.LATLON_PROJECTION);
+            boolean viewCenterInConus = viewCenterWorld != null
+                    && viewCenterWorld.length >= 2
+                    && viewCenterWorld[0] >= -125.0
+                    && viewCenterWorld[0] <= -66.0
+                    && viewCenterWorld[1] >= 24.0
+                    && viewCenterWorld[1] <= 50.0;
+            if (!viewCenterInConus) {
+                return;
+            }
             anchorX = viewCenterX;
             anchorY = viewCenterY;
         }
