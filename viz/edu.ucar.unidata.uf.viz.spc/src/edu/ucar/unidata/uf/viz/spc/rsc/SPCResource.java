@@ -196,7 +196,6 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 
 	@Override
 	public String inspect(ReferencedCoordinate coord) throws VizException {
-        StringBuilder res = new StringBuilder();
         DataTime timeToInspect = descriptor.getTimeForResource(this);
         if (timeToInspect == null) {
             return "";
@@ -209,26 +208,72 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             frameRecords = currentFrameRecords == null ? new ArrayList<>()
                     : new ArrayList<>(currentFrameRecords);
         }
-        for (SPCRecord record : frameRecords) {
-            try {
+
+        SPCRecord highestThreat = null;
+        int highestThreatRank = Integer.MIN_VALUE;
+        try {
+            Coordinate latLon = coord.asLatLon();
+            for (SPCRecord record : frameRecords) {
                 Geometry geom = record.getGeometry();
                 if (geom == null || geom.isEmpty()) {
                     continue;
                 }
-                Coordinate latLon = coord.asLatLon();
                 Point point = geom.getFactory().createPoint(latLon);
                 if (geom.contains(point)) {
-                    String data = record.getTypeCategory();
-                    res.append(data);
-                    res.append("\n");
+                    int threatRank = getThreatRank(record);
+                    if (highestThreat == null
+                            || threatRank > highestThreatRank) {
+                        highestThreat = record;
+                        highestThreatRank = threatRank;
+                    }
                 }
-                
-            } catch (Exception e) {
-                throw new VizException("Error interogating SPC geometry", e);
+            }
+        } catch (Exception e) {
+            throw new VizException("Error interrogating SPC geometry", e);
+        }
+
+        return highestThreat == null
+                ? "" : highestThreat.getTypeCategory();
+	}
+
+    /**
+     * Return an ordering value for sampling overlapping SPC risk areas.
+     * GeoJSON DN values increase with risk; category ranks provide a fallback
+     * for records that do not include DN.
+     */
+    private int getThreatRank(SPCRecord record) {
+        Integer riskLevel = record.getRiskLevel();
+        if (riskLevel != null) {
+            return riskLevel.intValue();
+        }
+
+        String category = record.getTypeCategory();
+        if ("General Thunder".equals(category)) {
+            return 10;
+        } else if ("Marginal Risk".equals(category)) {
+            return 20;
+        } else if ("Slight Risk".equals(category)) {
+            return 30;
+        } else if ("Enhanced Risk".equals(category)) {
+            return 40;
+        } else if ("Moderate Risk".equals(category)) {
+            return 50;
+        } else if ("High Risk".equals(category)) {
+            return 60;
+        } else if ("Sig".equalsIgnoreCase(category)) {
+            return 1000;
+        }
+
+        if (category != null) {
+            try {
+                return (int) Double.parseDouble(
+                        category.replace("%", "").trim());
+            } catch (NumberFormatException e) {
+                // Unknown labels rank below recognized categories.
             }
         }
-        return res.toString();
-	}
+        return Integer.MIN_VALUE;
+    }
 
 	@Override
 	protected void paintInternal(IGraphicsTarget target,
