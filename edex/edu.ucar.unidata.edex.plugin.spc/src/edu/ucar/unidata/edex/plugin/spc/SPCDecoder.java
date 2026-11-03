@@ -198,6 +198,15 @@ public class SPCDecoder {
                         // GeoJsonMapUtil casts feature IDs directly to String.
                         feature.put("id", id.toString());
                     }
+                    Object propertiesObject = feature.get("properties");
+                    if (propertiesObject instanceof Map<?, ?>) {
+                        Map<String, Object> properties =
+                                (Map<String, Object>) propertiesObject;
+                        // GeoJsonMapUtil infers each attribute's class from
+                        // its value, so omit null optional values.
+                        properties.entrySet().removeIf(
+                                entry -> entry.getValue() == null);
+                    }
                 }
             }
         }
