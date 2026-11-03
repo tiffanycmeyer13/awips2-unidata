@@ -461,7 +461,8 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
         // Prefer a fixed point in the central U.S. so global projections place
         // the no-risk notice over the outlook's area instead of the map center.
         double[] usCenterPixel = descriptor.worldToPixel(
-                new double[] { -98.0, 39.0 });
+                new double[] { -98.0, 39.0 },
+                com.raytheon.uf.common.geospatial.MapUtil.LATLON_PROJECTION);
         boolean usCenterVisible = usCenterPixel != null
                 && usCenterPixel.length >= 2
                 && Double.isFinite(usCenterPixel[0])
