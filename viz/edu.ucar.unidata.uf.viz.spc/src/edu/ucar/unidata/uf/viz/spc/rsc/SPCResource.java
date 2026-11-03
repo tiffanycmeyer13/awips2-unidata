@@ -197,7 +197,15 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 	@Override
 	public String inspect(ReferencedCoordinate coord) throws VizException {
         StringBuilder res = new StringBuilder();
-        for (SPCRecord record : records) {
+        Collection<SPCRecord> frameRecords;
+        synchronized (unprocessedRecords) {
+            Collection<SPCRecord> currentFrameRecords =
+                    displayedDataTime == null ? null
+                            : unprocessedRecords.get(displayedDataTime);
+            frameRecords = currentFrameRecords == null ? new ArrayList<>()
+                    : new ArrayList<>(currentFrameRecords);
+        }
+        for (SPCRecord record : frameRecords) {
             try {
                 Geometry geom = record.getGeometry();
                 if (geom == null || geom.isEmpty()) {
@@ -643,20 +651,21 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 	 */
 	protected void addRecord(SPCRecord obj) {
 		DataTime dataTime = obj.getDataTime();
-		
+
 		boolean brandNew = false;
 		synchronized (unprocessedRecords) {
-			records = unprocessedRecords.get(dataTime);
-			if (records == null) {
-				records = new LinkedHashSet<SPCRecord>();
-				unprocessedRecords.put(dataTime, records);
+			Collection<SPCRecord> frameRecords =
+					unprocessedRecords.get(dataTime);
+			if (frameRecords == null) {
+				frameRecords = new LinkedHashSet<SPCRecord>();
+				unprocessedRecords.put(dataTime, frameRecords);
 				brandNew = true;
 			}
+			frameRecords.add(obj);
 		}
 		if (brandNew) {
 			this.dataTimes.add(dataTime);
 		}
-		records.add(obj);
 	}
 
 	    public boolean isFillEnabled() {
