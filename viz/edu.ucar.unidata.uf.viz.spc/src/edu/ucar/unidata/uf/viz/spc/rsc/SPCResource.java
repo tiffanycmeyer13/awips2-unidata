@@ -477,19 +477,8 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             anchorX = usCenterPixel[0];
             anchorY = usCenterPixel[1];
         } else {
-            // For a zoomed-in U.S. view, the viewport center is still a useful
-            // anchor when the central-U.S. point is outside the canvas.
-            double[] viewCenterWorld = descriptor.pixelToWorld(
-                    new double[] { viewCenterX, viewCenterY });
-            boolean viewCenterInConus = viewCenterWorld != null
-                    && viewCenterWorld.length >= 2
-                    && viewCenterWorld[0] >= -125.0
-                    && viewCenterWorld[0] <= -66.0
-                    && viewCenterWorld[1] >= 24.0
-                    && viewCenterWorld[1] <= 50.0;
-            if (!viewCenterInConus) {
-                return;
-            }
+            // Keep the notice visible when a zoomed view excludes the
+            // central-U.S. anchor.
             anchorX = viewCenterX;
             anchorY = viewCenterY;
         }
