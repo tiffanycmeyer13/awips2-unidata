@@ -452,36 +452,25 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             label = "Less than " + label.substring(10);
         }
 
-        org.eclipse.swt.graphics.Rectangle bounds =
-                paintProps.getCanvasBounds();
-        double estimatedTextWidth = label.length() * 9.0;
-        double viewCenterX = bounds.x + bounds.width / 2.0;
-        double viewCenterY = bounds.y + bounds.height / 2.0;
-
-        // Prefer a fixed point in the central U.S. so global projections place
-        // the no-risk notice over the outlook's area instead of the map center.
-        double[] usCenterPixel = descriptor.worldToPixel(
+        IView view = paintProps.getView();
+        double[] usCenterGrid = descriptor.worldToPixel(
                 new double[] { -98.0, 39.0 },
                 com.raytheon.uf.common.geospatial.MapUtil.LATLON_PROJECTION);
-        boolean usCenterVisible = usCenterPixel != null
-                && usCenterPixel.length >= 2
-                && Double.isFinite(usCenterPixel[0])
-                && Double.isFinite(usCenterPixel[1])
-                && usCenterPixel[0] >= bounds.x
-                && usCenterPixel[0] <= bounds.x + bounds.width
-                && usCenterPixel[1] >= bounds.y
-                && usCenterPixel[1] <= bounds.y + bounds.height;
+        double[] noticeCanvasLocation = null;
 
-        double anchorX;
-        double anchorY;
-        if (usCenterVisible) {
-            anchorX = usCenterPixel[0];
-            anchorY = usCenterPixel[1];
+        // Test visibility in the view's grid coordinates, then convert to
+        // canvas pixels for ICanvasRenderingExtension.
+        if (usCenterGrid != null && usCenterGrid.length >= 2
+                && Double.isFinite(usCenterGrid[0])
+                && Double.isFinite(usCenterGrid[1])
+                && view.isVisible(usCenterGrid)) {
+            noticeCanvasLocation = view.gridToScreen(usCenterGrid, target);
         } else {
-            // If the U.S. anchor is outside this zoomed view, only show the
-            // notice when the viewport itself is over the contiguous U.S.
+            // If the central-U.S. anchor is outside a zoomed view, place the
+            // notice at the view center only when that center is in CONUS.
+            double[] viewCenterGrid = view.getExtent().getCenter();
             double[] viewCenterWorld = descriptor.pixelToWorld(
-                    new double[] { viewCenterX, viewCenterY },
+                    viewCenterGrid,
                     com.raytheon.uf.common.geospatial.MapUtil.LATLON_PROJECTION);
             boolean viewCenterInConus = viewCenterWorld != null
                     && viewCenterWorld.length >= 2
@@ -492,16 +481,21 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             if (!viewCenterInConus) {
                 return;
             }
-            anchorX = viewCenterX;
-            anchorY = viewCenterY;
+            noticeCanvasLocation = view.gridToScreen(viewCenterGrid, target);
         }
 
-        double x = anchorX - estimatedTextWidth / 2.0;
-        double y = anchorY;
+        if (noticeCanvasLocation == null || noticeCanvasLocation.length < 2
+                || !Double.isFinite(noticeCanvasLocation[0])
+                || !Double.isFinite(noticeCanvasLocation[1])) {
+            return;
+        }
 
         DrawableString notice = new DrawableString(label,
                 new RGB(255, 255, 0));
-        notice.setCoordinates(x, y);
+        notice.horizontalAlignment =
+                IGraphicsTarget.HorizontalAlignment.CENTER;
+        notice.setCoordinates(noticeCanvasLocation[0],
+                noticeCanvasLocation[1]);
         notice.verticallAlignment = VerticalAlignment.TOP;
         notice.addTextStyle(TextStyle.BLANKED, new RGB(0, 0, 0));
         PaintProperties noticeProps = new PaintProperties(paintProps);
