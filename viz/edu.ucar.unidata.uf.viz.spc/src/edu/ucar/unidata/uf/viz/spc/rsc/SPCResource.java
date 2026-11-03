@@ -197,11 +197,15 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
 	@Override
 	public String inspect(ReferencedCoordinate coord) throws VizException {
         StringBuilder res = new StringBuilder();
+        DataTime timeToInspect = descriptor.getTimeForResource(this);
+        if (timeToInspect == null) {
+            return "";
+        }
+
         Collection<SPCRecord> frameRecords;
         synchronized (unprocessedRecords) {
             Collection<SPCRecord> currentFrameRecords =
-                    displayedDataTime == null ? null
-                            : unprocessedRecords.get(displayedDataTime);
+                    unprocessedRecords.get(timeToInspect);
             frameRecords = currentFrameRecords == null ? new ArrayList<>()
                     : new ArrayList<>(currentFrameRecords);
         }
