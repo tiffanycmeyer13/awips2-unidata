@@ -452,11 +452,50 @@ public class SPCResource extends AbstractVizResource<SPCResourceData, MapDescrip
             label = "Less than " + label.substring(10);
         }
 
-        org.eclipse.swt.graphics.Rectangle bounds = paintProps.getCanvasBounds();
+        org.eclipse.swt.graphics.Rectangle bounds =
+                paintProps.getCanvasBounds();
         double estimatedTextWidth = label.length() * 9.0;
-        double x = bounds.x + Math.max(0.0,
-                (bounds.width - estimatedTextWidth) / 2.0);
-        double y = bounds.y + bounds.height / 2.0;
+        double viewCenterX = bounds.x + bounds.width / 2.0;
+        double viewCenterY = bounds.y + bounds.height / 2.0;
+
+        // Prefer a fixed point in the central U.S. so global projections place
+        // the no-risk notice over the outlook's area instead of the map center.
+        double[] usCenterPixel = descriptor.worldToPixel(
+                new double[] { -98.0, 39.0 });
+        boolean usCenterVisible = usCenterPixel != null
+                && usCenterPixel.length >= 2
+                && Double.isFinite(usCenterPixel[0])
+                && Double.isFinite(usCenterPixel[1])
+                && usCenterPixel[0] >= bounds.x
+                && usCenterPixel[0] <= bounds.x + bounds.width
+                && usCenterPixel[1] >= bounds.y
+                && usCenterPixel[1] <= bounds.y + bounds.height;
+
+        double anchorX;
+        double anchorY;
+        if (usCenterVisible) {
+            anchorX = usCenterPixel[0];
+            anchorY = usCenterPixel[1];
+        } else {
+            // For a zoomed-in U.S. view, the viewport center is still a useful
+            // anchor when the central-U.S. point is outside the canvas.
+            double[] viewCenterWorld = descriptor.pixelToWorld(
+                    new double[] { viewCenterX, viewCenterY });
+            boolean viewCenterInConus = viewCenterWorld != null
+                    && viewCenterWorld.length >= 2
+                    && viewCenterWorld[0] >= -125.0
+                    && viewCenterWorld[0] <= -66.0
+                    && viewCenterWorld[1] >= 24.0
+                    && viewCenterWorld[1] <= 50.0;
+            if (!viewCenterInConus) {
+                return;
+            }
+            anchorX = viewCenterX;
+            anchorY = viewCenterY;
+        }
+
+        double x = anchorX - estimatedTextWidth / 2.0;
+        double y = anchorY;
 
         DrawableString notice = new DrawableString(label,
                 new RGB(255, 255, 0));
