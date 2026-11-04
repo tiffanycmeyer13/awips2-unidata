@@ -139,6 +139,9 @@
                                     <mapping key="pluginName">
                                         <constraint constraintType="EQUALS" constraintValue="spc"/>
                                     </mapping>
+                                    <mapping key="outlookDay">
+                                        <constraint constraintType="EQUALS" constraintValue="${outlookDay}"/>
+                                    </mapping>
                                 </metadataMap>
                             </resourceData>
                         </resource>
@@ -281,6 +284,9 @@
                                     </mapping>
                                     <mapping key="pluginName">
                                         <constraint constraintType="EQUALS" constraintValue="spc"/>
+                                    </mapping>
+                                    <mapping key="outlookDay">
+                                        <constraint constraintType="EQUALS" constraintValue="${outlookDay}"/>
                                     </mapping>
                                 </metadataMap>
                             </resourceData>
@@ -425,6 +431,9 @@
                                     <mapping key="pluginName">
                                         <constraint constraintType="EQUALS" constraintValue="spc"/>
                                     </mapping>
+                                    <mapping key="outlookDay">
+                                        <constraint constraintType="EQUALS" constraintValue="${outlookDay}"/>
+                                    </mapping>
                                 </metadataMap>
                             </resourceData>
                         </resource>
@@ -567,6 +576,9 @@
                                     </mapping>
                                     <mapping key="pluginName">
                                         <constraint constraintType="EQUALS" constraintValue="spc"/>
+                                    </mapping>
+                                    <mapping key="outlookDay">
+                                        <constraint constraintType="EQUALS" constraintValue="${outlookDay}"/>
                                     </mapping>
                                 </metadataMap>
                             </resourceData>
