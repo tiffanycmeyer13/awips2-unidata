@@ -1,45 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd   
-  http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="spcDecoder"
-		class="edu.ucar.unidata.edex.plugin.spc.SPCDecoder" />
+    <bean id="spcDecoder"
+        class="edu.ucar.unidata.edex.plugin.spc.SPCDecoder" />
 
-	<bean id="spcDistRegistry" factory-bean="distributionSrv"
-		factory-method="register">
-		<constructor-arg ref="spcPluginName" />
-		<constructor-arg value="jms-durable:queue:Ingest.Spc" />
-		<constructor-arg value="true" />
-	</bean>
+    <bean id="spcDistRegistry" factory-bean="distributionSrv"
+        factory-method="register">
+        <constructor-arg ref="spcPluginName" />
+        <constructor-arg value="jms-durable:queue:Ingest.Spc" />
+        <constructor-arg value="true" />
+    </bean>
 
-	<camelContext id="spc-camel"
-		xmlns="http://camel.apache.org/schema/spring"
-		errorHandlerRef="errorHandler">
-		
-		<!-- Use unique template bean IDs to avoid collisions with other EDEX Camel contexts. -->
-		<template id="spcProducerTemplate" />
-		<fluentTemplate id="spcFluentTemplate" />
-		<consumerTemplate id="spcConsumerTemplate" />
-		
-		<route id="spcIngestRoute">
-			<from uri="jms-durable:queue:Ingest.Spc" />
-			<setHeader name="pluginName">
-				<constant>spc</constant>
-			</setHeader>
-			<doTry>
-				<pipeline>
-					<bean ref="stringToFile" />
-					<bean ref="spcDecoder" method="decode" />
-					<to uri="direct:persistIndexAlert" />
-				</pipeline>
-				<doCatch>
-					<exception>java.lang.Throwable</exception>
-					<to uri="log:spc?level=ERROR" />
-				</doCatch>
-			</doTry>
-
-		</route>
-	</camelContext>
+    <bean id="spc-camel" factory-bean="routeContextFactory"
+        factory-method="create">
+        <constructor-arg>
+            <bean class="edu.ucar.unidata.edex.plugin.spc.SPCCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

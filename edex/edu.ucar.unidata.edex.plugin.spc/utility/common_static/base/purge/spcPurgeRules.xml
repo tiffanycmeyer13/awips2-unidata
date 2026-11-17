@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<purgeRuleSet xmlns:ns2="group">
-	<defaultRule>
-			<period>07-00:00:00</period>
-	</defaultRule>
+<purgeRuleSet>
+    <defaultRule>
+        <versionsToKeep>2</versionsToKeep>
+        <period>07-00:00:00</period>
+    </defaultRule>
 </purgeRuleSet>

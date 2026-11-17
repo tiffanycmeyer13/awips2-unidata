@@ -4,7 +4,7 @@ Bundle-Name: SPC
 Bundle-SymbolicName: edu.ucar.unidata.common.dataplugin.spc
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Unidata
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Eclipse-RegisterBuddy: com.raytheon.uf.common.serialization
 Require-Bundle: com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.geospatial,

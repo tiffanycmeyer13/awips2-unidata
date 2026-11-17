@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="spcPollingConfiguration"
+        class="edu.ucar.unidata.edex.plugin.spc.SPCPollingConfiguration" />
+
+    <bean id="spcArchivePoller"
+        class="edu.ucar.unidata.edex.plugin.spc.SPCArchivePoller" />
+
+    <bean id="spcFeatureServerPoller"
+        class="edu.ucar.unidata.edex.plugin.spc.SPCFeatureServerPoller" />
+
+    <bean id="spc-polling-camel" factory-bean="routeContextFactory"
+        factory-method="create">
+        <constructor-arg>
+            <bean class="edu.ucar.unidata.edex.plugin.spc.SPCPollingRoutes" />
+        </constructor-arg>
+    </bean>
+</beans>
